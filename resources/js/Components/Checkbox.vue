@@ -17,6 +17,10 @@ const proxyChecked = computed({
         emit('update:checked', val);
     },
 });
+
+function defineEmits(arg0: string[]) {
+    throw new Error('Function not implemented.');
+}
 </script>
 
 <template>
