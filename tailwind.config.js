@@ -1,20 +1,19 @@
-import defaultTheme from 'tailwindcss/defaultTheme';
-
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
     content: [
-        './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
-        './storage/framework/views/*.php',
-        './resources/**/*.blade.php',
-        './resources/**/*.js',
-        './resources/**/*.vue',
+      './resources/**/*.blade.php',
+      './resources/**/*.js',
+      './resources/**/*.vue',
+      './resources/**/*.ts',  // Thêm hỗ trợ cho TypeScript
     ],
     theme: {
-        extend: {
-            fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
-            },
+      extend: {
+        // Bạn có thể thêm các tùy chỉnh cho theme tại đây nếu cần
+        colors: {
+          'custom-color': '#ffcc00', // Ví dụ về màu tùy chỉnh
         },
+      },
     },
     plugins: [],
-};
+  }
+  
