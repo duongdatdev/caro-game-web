@@ -1,19 +1,22 @@
+import defaultTheme from 'tailwindcss/defaultTheme';
+import forms from '@tailwindcss/forms';
+
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
     content: [
-      './resources/**/*.blade.php',
-      './resources/**/*.js',
-      './resources/**/*.vue',
-      './resources/**/*.ts',  // Thêm hỗ trợ cho TypeScript
+        './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
+        './storage/framework/views/*.php',
+        './resources/views/**/*.blade.php',
+        './resources/js/**/*.vue',
     ],
+
     theme: {
-      extend: {
-        // Bạn có thể thêm các tùy chỉnh cho theme tại đây nếu cần
-        colors: {
-          'custom-color': '#ffcc00', // Ví dụ về màu tùy chỉnh
+        extend: {
+            fontFamily: {
+                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+            },
         },
-      },
     },
-    plugins: [],
-  }
-  
+
+    plugins: [forms],
+};
