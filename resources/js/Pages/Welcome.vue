@@ -16,7 +16,6 @@ function handleImageError() {
 }
 </script>
 
-
 <template>
     <Head title="Gomoku Online" />
     <div class="bg-gray-100 dark:bg-gray-900">

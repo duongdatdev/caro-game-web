@@ -25,6 +25,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     //Room routes
+    Route::get('/rooms', function () {
+        return Inertia::render('Room/Index');
+    })->name('rooms.index');
 
     //Game routes
     Route::get('/game/{id}', function () {

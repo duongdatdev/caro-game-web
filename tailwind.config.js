@@ -12,6 +12,8 @@ export default {
         "./resources/js/Pages/Game/**/*.vue",
     ],
 
+    darkMode: 'class', 
+
     theme: {
         extend: {
             fontFamily: {
