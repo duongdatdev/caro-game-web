@@ -20,6 +20,7 @@ const stats: PlayerStats = {
 </script>
 
 <template>
+
     <Head title="Game Dashboard" />
 
     <AuthenticatedLayout>
@@ -100,28 +101,40 @@ const stats: PlayerStats = {
                             </div>
                         </div>
                         <div class="mt-4">
-                            <!-- <Link :href="route('leaderboard')"
+                            <Link :href="route('leaderboard')"
                                 class="w-full flex justify-center py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition">
-                                View Leaderboard
-                            </Link> -->
+                            View Leaderboard
+                            </Link>
                         </div>
                     </div>
 
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
-                        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
-                            Recent Activity
-                        </h3>
+                    <!-- <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                Recent Activity
+                            </h3>
+                            <Link :href="route('history.index')"
+                                class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
+                            View All History
+                            </Link>
+                        </div>
                         <div class="space-y-2">
-                            <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                                <span>Won against Player123</span>
-                                <span class="text-sm text-gray-500">2m ago</span>
-                            </div>
-                            <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                                <span>Lost to Player456</span>
-                                <span class="text-sm text-gray-500">15m ago</span>
+                            <div v-for="(activity, index) in recentActivities.slice(0, 3)" :key="index"
+                                class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                                <div class="flex items-center gap-2">
+                                    <span :class="{
+                                        'text-green-600': activity.type === 'win',
+                                        'text-red-600': activity.type === 'loss',
+                                        'text-yellow-600': activity.type === 'draw'
+                                    }">
+                                        {{ activity.type === 'win' ? '🏆' : activity.type === 'loss' ? '❌' : '🤝' }}
+                                    </span>
+                                    <span>{{ activity.description }}</span>
+                                </div>
+                                <span class="text-sm text-gray-500">{{ activity.time }}</span>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </div>

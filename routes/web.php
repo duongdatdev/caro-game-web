@@ -38,6 +38,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/leaderboard', function () {
         return Inertia::render('Leaderboard/Index');
     })->name('leaderboard');
+
+    // Game History route
+    Route::get('/history', function () {
+        return Inertia::render('History/Index');
+    })->name('history.index');
 });
 
 require __DIR__.'/auth.php';
