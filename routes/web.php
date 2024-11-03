@@ -33,6 +33,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/game/{id}', function () {
         return Inertia::render('Game/Show');
     })->name('game.show');
+
+    //LeaderBoard routes
+    Route::get('/leaderboard', function () {
+        return Inertia::render('Leaderboard/Index');
+    })->name('leaderboard');
 });
 
 require __DIR__.'/auth.php';
