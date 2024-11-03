@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+import DarkModeToggle from '@/Components/DarkModeToggle.vue';
 
 defineProps<{
     canLogin?: boolean;
@@ -26,6 +27,8 @@ function handleImageError() {
                     <div class="text-2xl font-bold text-gray-800 dark:text-white">
                         Gomoku Online
                     </div>
+
+                    <DarkModeToggle class="mr-4" />
                     
                     <div class="flex items-center space-x-4">
                         <template v-if="$page.props.auth.user">

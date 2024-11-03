@@ -13,12 +13,17 @@ return new class extends Migration
     {
         Schema::create('games', function (Blueprint $table) {
             $table->id();
-            $table->enum('status', ['waiting', 'playing', 'finished']);
+            $table->string('name');
+            $table->enum('status', ['waiting', 'playing', 'finished'])->default('waiting');
             $table->foreignId('player1_id')->constrained('users');
             $table->foreignId('player2_id')->nullable()->constrained('users');
             $table->foreignId('winner_id')->nullable()->constrained('users');
+            $table->integer('moves_count')->default(0);
+            $table->integer('board_size')->default(15);
+            $table->foreignId('current_turn')->nullable()->constrained('users');
+            $table->boolean('has_password')->default(false);
+            $table->string('password')->nullable();
             $table->timestamps();
-        
         });
     }
 

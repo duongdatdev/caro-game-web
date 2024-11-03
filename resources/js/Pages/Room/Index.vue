@@ -1,36 +1,45 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import Modal from '@/Components/Modal.vue';
+import { Head, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import InputLabel from '@/Components/InputLabel.vue';
+import TextInput from '@/Components/TextInput.vue';
+import InputError from '@/Components/InputError.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
 
-interface Room {
-    id: number;
-    name: string;
-    owner: {
-        name: string;
-        rating: number;
-    };
-    player2?: {
-        name: string;
-        rating: number;
-    };
-    status: 'waiting' | 'playing' | 'finished';
-    created_at: string;
-}
+const showCreateModal = ref(false);
 
-// Sample data - will be replaced with real data from backend
-const rooms = ref<Room[]>([
-    {
-        id: 1,
-        name: 'Room #1',
-        owner: {
-            name: 'Player 1',
-            rating: 1500
+const form = useForm({
+    name: '',
+    description: '',
+    password: '',
+    has_password: false
+});
+
+const createRoom = () => {
+    form.post(route('rooms.store'), {
+        onSuccess: () => {
+            showCreateModal.value = false;
+            form.reset();
         },
-        status: 'waiting',
-        created_at: '2 mins ago'
-    }
-]);
+    });
+};
+
+defineProps<{
+    rooms: {
+        id: number;
+        name: string;
+        status: string;
+        created_at: string;
+        creator: {
+            name: string;
+        };
+        players: Array<{
+            name: string;
+        }>;
+    }[];
+}>();
 </script>
 
 <template>
@@ -42,84 +51,37 @@ const rooms = ref<Room[]>([
                 <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
                     Game Rooms
                 </h2>
-                <button class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                <PrimaryButton @click="showCreateModal = true">
                     Create Room
-                </button>
+                </PrimaryButton>
             </div>
         </template>
 
+        <!-- Room List -->
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <!-- Search and Filters -->
-                <div class="mb-6 flex gap-4">
-                    <input 
-                        type="text" 
-                        placeholder="Search rooms..."
-                        class="flex-1 rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-                    >
-                    <select class="rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800">
-                        <option value="all">All Status</option>
-                        <option value="waiting">Waiting</option>
-                        <option value="playing">Playing</option>
-                    </select>
-                </div>
-
-                <!-- Room List -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
-                        <div class="grid gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div v-for="room in rooms" :key="room.id" 
-                                 class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 flex items-center justify-between">
-                                <!-- Room Info -->
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-4">
-                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                            {{ room.name }}
-                                        </h3>
-                                        <span :class="{
-                                            'bg-yellow-100 text-yellow-800': room.status === 'waiting',
-                                            'bg-green-100 text-green-800': room.status === 'playing',
-                                            'bg-gray-100 text-gray-800': room.status === 'finished'
-                                        }" class="px-2 py-1 text-xs rounded-full">
-                                            {{ room.status }}
-                                        </span>
+                                class="p-4 border rounded-lg dark:border-gray-700">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h3 class="text-lg font-semibold">{{ room.name }}</h3>
+                                        <p class="text-sm text-gray-500">
+                                            Created by: {{ room.creator.name }}
+                                        </p>
+                                        <p class="text-sm">
+                                            Players: {{ room.players.length }}/{{ room.max_players }}
+                                        </p>
                                     </div>
-                                    <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                                        Created {{ room.created_at }}
-                                    </div>
-                                </div>
-
-                                <!-- Players -->
-                                <div class="flex items-center gap-8 mr-8">
-                                    <div class="text-center">
-                                        <div class="font-medium text-gray-900 dark:text-gray-100">
-                                            {{ room.owner.name }}
-                                        </div>
-                                        <div class="text-sm text-gray-600 dark:text-gray-400">
-                                            {{ room.owner.rating }} MMR
-                                        </div>
-                                    </div>
-                                    <div class="text-gray-400">vs</div>
-                                    <div class="text-center">
-                                        <div class="font-medium text-gray-900 dark:text-gray-100">
-                                            {{ room.player2?.name || 'Waiting...' }}
-                                        </div>
-                                        <div class="text-sm text-gray-600 dark:text-gray-400">
-                                            {{ room.player2?.rating || '---' }}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Actions -->
-                                <div>
-                                    <button v-if="room.status === 'waiting'"
-                                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
-                                        Join Game
-                                    </button>
-                                    <button v-else-if="room.status === 'playing'"
-                                            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
-                                        Spectate
-                                    </button>
+                                    <span :class="{
+                                        'bg-yellow-100 text-yellow-800': room.status === 'waiting',
+                                        'bg-green-100 text-green-800': room.status === 'playing',
+                                        'bg-gray-100 text-gray-800': room.status === 'finished'
+                                    }" class="px-2 py-1 rounded-full text-xs">
+                                        {{ room.status }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -127,5 +89,67 @@ const rooms = ref<Room[]>([
                 </div>
             </div>
         </div>
+
+        <!-- Create Room Modal -->
+        <Modal :show="showCreateModal" @close="showCreateModal = false">
+        <div class="p-6">
+            <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                Create New Room
+            </h2>
+
+            <form @submit.prevent="createRoom" class="mt-6">
+                <div>
+                    <InputLabel for="name" value="Room Name" />
+                    <TextInput
+                        id="name"
+                        v-model="form.name"
+                        type="text"
+                        class="mt-1 block w-full"
+                        required
+                    />
+                    <InputError :message="form.errors.name" class="mt-2" />
+                </div>
+
+                <div class="mt-6">
+                    <InputLabel for="description" value="Description (Optional)" />
+                    <TextInput
+                        id="description"
+                        v-model="form.description"
+                        type="text"
+                        class="mt-1 block w-full"
+                    />
+                </div>
+
+                <div class="mt-6">
+                    <div class="flex items-center">
+                        <input
+                            type="checkbox"
+                            id="has_password"
+                            v-model="form.has_password"
+                            class="rounded border-gray-300 dark:border-gray-700"
+                        />
+                        <label for="has_password" class="ml-2">Password protect this room</label>
+                    </div>
+
+                    <div v-if="form.has_password" class="mt-4">
+                        <InputLabel for="password" value="Room Password" />
+                        <TextInput
+                            id="password"
+                            v-model="form.password"
+                            type="password"
+                            class="mt-1 block w-full"
+                        />
+                        <InputError :message="form.errors.password" class="mt-2" />
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <PrimaryButton type="submit" :disabled="form.processing">
+                        Create Room
+                    </PrimaryButton>
+                </div>
+            </form>
+        </div>
+    </Modal>
     </AuthenticatedLayout>
 </template>

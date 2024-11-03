@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RoomController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -25,10 +26,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     //Room routes
-    Route::get('/rooms', function () {
-        return Inertia::render('Room/Index');
-    })->name('rooms.index');
-
+    Route::get('/rooms', [RoomController::class, 'index'])->name('rooms.index');
+    Route::post('/rooms', [RoomController::class, 'store'])->name('rooms.store');
+    Route::post('/rooms/{room}/join', [RoomController::class, 'join'])->name('rooms.join');
+    
     //Game routes
     Route::get('/game/{id}', function () {
         return Inertia::render('Game/Show');
@@ -43,6 +44,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/history', function () {
         return Inertia::render('History/Index');
     })->name('history.index');
+
 });
 
 require __DIR__.'/auth.php';
