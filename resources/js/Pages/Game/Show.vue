@@ -2,6 +2,73 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Board from '@/Components/Game/Board.vue';
 import { Head } from '@inertiajs/vue3';
+import { ref, onMounted } from 'vue';
+import Echo from 'laravel-echo';
+
+const props = defineProps<{
+    room: {
+        id: number;
+        name: string;
+        status: string;
+        created_by: number;
+        players: Array<{
+            id: number;
+            name: string;
+            pivot: {
+                is_ready: boolean;
+            };
+        }>;
+        moves: Array<{
+            x: number;
+            y: number;
+            user_id: number;
+        }>;
+    };
+    currentPlayer: number;
+}>();
+
+const moves = ref(props.room.moves);
+const isYourTurn = ref(false);
+const gameStatus = ref(props.room.status);
+const messages = ref<Array<{ id: number; user_id: number; message: string }>>([]);
+const newMessage = ref('');
+
+onMounted(() => {
+    const echo = new Echo({
+        broadcaster: 'pusher',
+        key: import.meta.env.VITE_PUSHER_APP_KEY,
+        cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+    });
+
+    echo.private(`room.${props.room.id}`)
+        .listen('.move.made', (e: any) => {
+            moves.value.push(e.move);
+            isYourTurn.value = e.move.user_id !== props.currentPlayer;
+        })
+        .listen('.player.ready', (e: any) => {
+            if (e.room.status === 'playing') {
+                gameStatus.value = 'playing';
+                isYourTurn.value = props.room.created_by === props.currentPlayer;
+            }
+        })
+        .listen('.message.sent', (e: any) => {
+            messages.value.push(e.message);
+        });
+});
+
+const makeMove = async (x: number, y: number) => {
+    if (!isYourTurn.value || gameStatus.value !== 'playing') return;
+
+    try {
+        const response = await axios.post(`/game/${props.room.id}/move`, { x, y });
+        if (response.data.status === 'win') {
+            gameStatus.value = 'finished';
+        }
+        isYourTurn.value = false;
+    } catch (error) {
+        console.error('Failed to make move:', error);
+    }
+};
 </script>
 
 <template>
@@ -11,111 +78,75 @@ import { Head } from '@inertiajs/vue3';
         <template #header>
             <div class="flex justify-between items-center">
                 <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
-                    Game Room #1
+                    {{ room.name }}
                 </h2>
                 <div class="text-sm text-gray-600 dark:text-gray-400">
-                    Your Turn
+                    {{ isYourTurn ? 'Your Turn' : "Opponent's Turn" }}
                 </div>
             </div>
         </template>
 
         <div class="py-6 sm:py-12">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-4 sm:p-6">
-                    <!-- Mobile Game Info -->
-                    <div class="block lg:hidden mb-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <div class="flex items-center">
-                                <div class="w-3 h-3 rounded-full bg-black mr-2"></div>
-                                <span class="font-medium">Player 1 (1500)</span>
-                            </div>
-                            <div class="flex items-center">
-                                <span class="font-medium">Player 2 (1480)</span>
-                                <div class="w-3 h-3 rounded-full bg-white border border-black ml-2"></div>
-                            </div>
-                        </div>
-                        <div class="flex justify-between text-sm text-gray-600">
-                            <div>Time: 15:00</div>
-                            <div>Moves: 12</div>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-col lg:flex-row">
-                        <!-- Game Info & Players (Desktop) -->
-                        <div class="hidden lg:block w-1/4 pr-6">
-                            <div class="mb-8">
-                                <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
-                                    Players
-                                </h3>
-                                <div class="space-y-4">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <div class="w-3 h-3 rounded-full bg-black mr-2"></div>
-                                            <span class="font-medium">Player 1</span>
-                                        </div>
-                                        <span class="text-sm text-gray-600">1500</span>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <div class="w-3 h-3 rounded-full bg-white border border-black mr-2"></div>
-                                            <span class="font-medium">Player 2</span>
-                                        </div>
-                                        <span class="text-sm text-gray-600">1480</span>
-                                    </div>
+                <div class="flex flex-col lg:flex-row gap-6">
+                    <!-- Game Info -->
+                    <div class="w-full lg:w-1/4">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                            <h3 class="text-lg font-semibold mb-4">Players</h3>
+                            <div class="space-y-2">
+                                <div v-for="player in room.players" :key="player.id"
+                                     :class="{'text-green-600': player.pivot.is_ready}">
+                                    {{ player.name }}
+                                    <span v-if="player.pivot.is_ready">(Ready)</span>
                                 </div>
                             </div>
-
-                            <div class="mb-8">
-                                <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Game Info</h3>
-                                <div class="text-sm text-gray-600 space-y-2">
-                                    <div>Time: 15:00</div>
-                                    <div>Moves: 12</div>
-                                </div>
-                            </div>
-
-                            <button class="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition">
-                                Forfeit Game
+                            
+                            <button v-if="gameStatus === 'waiting'"
+                                    @click="toggleReady"
+                                    class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                Toggle Ready
                             </button>
                         </div>
-
-                        <!-- Game Board -->
-                        <div class="w-full lg:w-2/4 flex justify-center mb-6 lg:mb-0 overflow-auto">
-                            <div class="transform scale-90 sm:scale-100">
-                                <Board />
-                            </div>
-                        </div>
-
-                        <!-- Chat Section -->
-                        <div class="w-full lg:w-1/4 lg:pl-6">
-                            <div class="h-[300px] lg:h-[600px] flex flex-col">
-                                <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Chat</h3>
-                                <div class="flex-1 bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4 overflow-y-auto">
-                                    <div class="space-y-2">
-                                        <div class="text-sm">
-                                            <span class="font-medium">Player 1:</span> Good luck!
-                                        </div>
-                                        <div class="text-sm">
-                                            <span class="font-medium">Player 2:</span> You too!
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="flex">
-                                    <input type="text" 
-                                           class="flex-1 rounded-l-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800"
-                                           placeholder="Type a message...">
-                                    <button class="px-4 py-2 bg-indigo-600 text-white rounded-r-lg hover:bg-indigo-700">
-                                        Send
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
-                    <!-- Mobile Controls -->
-                    <div class="block lg:hidden mt-6">
-                        <button class="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition">
-                            Forfeit Game
-                        </button>
+                    <!-- Game Board -->
+                    <div class="w-full lg:w-2/4">
+                        <Board 
+                            :moves="moves"
+                            :disabled="!isYourTurn || gameStatus !== 'playing'"
+                            :current-player="currentPlayer"
+                            @move="makeMove"
+                        />
+                    </div>
+
+                    <!-- Chat -->
+                    <div class="w-full lg:w-1/4">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 h-full flex flex-col">
+                            <h3 class="text-lg font-semibold mb-4">Chat</h3>
+                            <div class="flex-1 overflow-y-auto mb-4 space-y-2">
+                                <div v-for="message in messages" :key="message.id"
+                                     class="text-sm">
+                                    <span class="font-medium">
+                                        {{ room.players.find(p => p.id === message.user_id)?.name }}:
+                                    </span>
+                                    {{ message.message }}
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <input
+                                    v-model="newMessage"
+                                    type="text"
+                                    class="flex-1 rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900"
+                                    placeholder="Type a message..."
+                                    @keyup.enter="sendMessage"
+                                >
+                                <button
+                                    @click="sendMessage"
+                                    class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                                    Send
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Hash;
 
 class RoomController extends Controller
 {
@@ -47,20 +48,27 @@ class RoomController extends Controller
 
     public function join(Room $room, Request $request)
     {
-        $request->validate([
-            'password' => 'required_if:has_password,true|string',
+        if ($room->players()->count() >= 2) {
+            return back()->withErrors(['error' => 'Room is full']);
+        }
+    
+        // Check if player is already in the room
+        if ($room->players()->where('user_id', Auth::id())->exists()) {
+            return back()->withErrors(['error' => 'You are already in this room']);
+        }
+    
+        // Check password if room has one
+        if ($room->password) {
+            if (!$request->password || !Hash::check($request->password, $room->password)) {
+                return back()->withErrors(['password' => 'Invalid password']);
+            }
+        }
+    
+        // Join room
+        $room->players()->attach(Auth::id(), [
+            'is_ready' => false
         ]);
-
-        if ($room->password && !password_verify($request->password, $room->password)) {
-            return back()->withErrors(['password' => 'Incorrect password']);
-        }
-
-        if ($room->players()->count() >= $room->max_players) {
-            return back()->withErrors(['room' => 'Room is full']);
-        }
-
-        $room->players()->attach(Auth::id(), ['joined_at' => now()]);
-
-        return redirect()->route('rooms.show', $room);
+    
+        return redirect()->route('game.show', ['room' => $room->id]);
     }
 }

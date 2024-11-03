@@ -1,0 +1,144 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Room;
+use App\Models\Game;
+use App\Events\MoveMade;
+use App\Events\GameFinished;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
+
+class GameController extends Controller
+{
+    public function show(Room $room)
+    {
+        // Check if user is in the room
+        if (!$room->players()->where('user_id', Auth::id())->exists()) {
+            return redirect()->route('rooms.index');
+        }
+
+        // Load relationships
+        $room->load(['players', 'games' => function($query) {
+            $query->latest()->first();
+        }]);
+
+        // Get current game or create new one
+        $game = $room->games()->firstOrCreate(
+            ['status' => 'playing'],
+            [
+                'board_state' => array_fill(0, 15, array_fill(0, 15, null)),
+                'status' => 'playing'
+            ]
+        );
+
+        return Inertia::render('Game/Show', [
+            'room' => [
+                'id' => $room->id,
+                'name' => $room->name,
+                'status' => $room->status,
+                'created_by' => $room->created_by,
+                'players' => $room->players->map(function ($player) {
+                    return [
+                        'id' => $player->id,
+                        'name' => $player->name,
+                        'pivot' => [
+                            'is_ready' => (bool) $player->pivot->is_ready
+                        ]
+                    ];
+                }),
+                'moves' => $game->moves ?? []
+            ],
+            'currentPlayer' => Auth::id(),
+            'game' => [
+                'id' => $game->id,
+                'status' => $game->status,
+                'board_state' => $game->board_state
+            ]
+        ]);
+    }
+
+    public function makeMove(Request $request, Room $room)
+    {
+        $request->validate([
+            'x' => 'required|integer|min:0|max:14',
+            'y' => 'required|integer|min:0|max:14',
+        ]);
+
+        $game = $room->games()->latest()->first();
+        
+        if (!$game || $game->status === 'finished') {
+            return response()->json(['error' => 'Game not active'], 400);
+        }
+
+        // Verify it's player's turn
+        $lastMove = $game->moves()->latest()->first();
+        if ($lastMove && $lastMove->user_id === Auth::id()) {
+            return response()->json(['error' => 'Not your turn'], 400);
+        }
+
+        // Make move
+        $move = $game->moves()->create([
+            'user_id' => Auth::id(),
+            'x' => $request->x,
+            'y' => $request->y,
+            'order' => $game->moves()->count() + 1
+        ]);
+
+        // Update board state
+        $boardState = $game->board_state ?? array_fill(0, 15, array_fill(0, 15, null));
+        $boardState[$request->y][$request->x] = Auth::id();
+        $game->board_state = $boardState;
+        $game->save();
+
+        broadcast(new MoveMade($room->id, $move->toArray()))->toOthers();
+
+        if ($this->checkWin($boardState, $request->x, $request->y, Auth::id())) {
+            $game->update([
+                'status' => 'finished',
+                'winner_id' => Auth::id()
+            ]);
+            broadcast(new GameFinished($room->id, Auth::id()))->toOthers();
+            return response()->json(['status' => 'win']);
+        }
+
+        return response()->json(['status' => 'success']);
+    }
+
+    private function checkWin($board, $x, $y, $playerId): bool
+    {
+        $directions = [
+            [0, 1],  // horizontal
+            [1, 0],  // vertical
+            [1, 1],  // diagonal right
+            [1, -1]  // diagonal left
+        ];
+
+        foreach ($directions as $dir) {
+            $count = 1;
+            
+            // Check forward
+            $i = 1;
+            while ($i <= 4 && 
+                   isset($board[$y + $dir[0] * $i][$x + $dir[1] * $i]) && 
+                   $board[$y + $dir[0] * $i][$x + $dir[1] * $i] === $playerId) {
+                $count++;
+                $i++;
+            }
+            
+            // Check backward
+            $i = 1;
+            while ($i <= 4 && 
+                   isset($board[$y - $dir[0] * $i][$x - $dir[1] * $i]) && 
+                   $board[$y - $dir[0] * $i][$x - $dir[1] * $i] === $playerId) {
+                $count++;
+                $i++;
+            }
+
+            if ($count >= 5) return true;
+        }
+
+        return false;
+    }
+}

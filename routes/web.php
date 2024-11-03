@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoomController;
+use App\Http\Controllers\GameController;
+
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -29,11 +31,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/rooms', [RoomController::class, 'index'])->name('rooms.index');
     Route::post('/rooms', [RoomController::class, 'store'])->name('rooms.store');
     Route::post('/rooms/{room}/join', [RoomController::class, 'join'])->name('rooms.join');
-    
+
     //Game routes
-    Route::get('/game/{id}', function () {
-        return Inertia::render('Game/Show');
-    })->name('game.show');
+    Route::get('/game/{room}', [GameController::class, 'show'])->name('game.show');
+    Route::post('/game/{room}/move', [GameController::class, 'makeMove'])->name('game.move');
 
     //LeaderBoard routes
     Route::get('/leaderboard', function () {

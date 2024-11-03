@@ -9,6 +9,12 @@ import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 
 const showCreateModal = ref(false);
+const showJoinModal = ref(false);
+const selectedRoom = ref(null);
+
+const joinForm = useForm({
+    password: '',
+});
 
 const form = useForm({
     name: '',
@@ -24,6 +30,20 @@ const createRoom = () => {
             form.reset();
         },
     });
+};
+
+const joinRoom = (room) => {
+    selectedRoom.value = room;
+    if (room.password) {
+        showJoinModal.value = true;
+    } else {
+        joinForm.post(route('rooms.join', room.id), {
+            onSuccess: () => {
+                showJoinModal.value = false;
+                joinForm.reset();
+            }
+        });
+    }
 };
 
 defineProps<{
@@ -43,6 +63,7 @@ defineProps<{
 </script>
 
 <template>
+
     <Head title="Game Rooms" />
 
     <AuthenticatedLayout>
@@ -58,98 +79,102 @@ defineProps<{
         </template>
 
         <!-- Room List -->
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <div v-for="room in rooms" :key="room.id" 
-                                class="p-4 border rounded-lg dark:border-gray-700">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <h3 class="text-lg font-semibold">{{ room.name }}</h3>
-                                        <p class="text-sm text-gray-500">
-                                            Created by: {{ room.creator.name }}
-                                        </p>
-                                        <p class="text-sm">
-                                            Players: {{ room.players.length }}/{{ room.max_players }}
-                                        </p>
-                                    </div>
-                                    <span :class="{
-                                        'bg-yellow-100 text-yellow-800': room.status === 'waiting',
-                                        'bg-green-100 text-green-800': room.status === 'playing',
-                                        'bg-gray-100 text-gray-800': room.status === 'finished'
-                                    }" class="px-2 py-1 rounded-full text-xs">
-                                        {{ room.status }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div v-for="room in rooms" :key="room.id" class="p-4 border rounded-lg dark:border-gray-700">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-lg font-semibold">{{ room.name }}</h3>
+                        <p class="text-sm text-gray-500">
+                            Created by: {{ room.creator.name }}
+                        </p>
+                        <p class="text-sm">
+                            Players: {{ room.players.length }}/2
+                        </p>
                     </div>
+                    <span :class="{
+                        'bg-yellow-100 text-yellow-800': room.status === 'waiting',
+                        'bg-green-100 text-green-800': room.status === 'playing',
+                        'bg-gray-100 text-gray-800': room.status === 'finished'
+                    }" class="px-2 py-1 rounded-full text-xs">
+                        {{ room.status }}
+                    </span>
+                </div>
+                <div class="mt-4 flex justify-end">
+                    <button @click="joinRoom(room)" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        :disabled="room.players.length >= 2 || room.status !== 'waiting'">
+                        {{ room.password ? 'Join (Password Required)' : 'Join' }}
+                    </button>
                 </div>
             </div>
         </div>
 
+        <!-- Join Room Modal -->
+        <Modal :show="showJoinModal" @close="showJoinModal = false">
+            <div class="p-6">
+                <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                    Join Room
+                </h2>
+                <form @submit.prevent="joinRoom(selectedRoom)" class="mt-6">
+                    <div>
+                        <InputLabel for="password" value="Room Password" />
+                        <TextInput id="password" v-model="joinForm.password" type="password" class="mt-1 block w-full"
+                            required />
+                        <InputError :message="joinForm.errors.password" class="mt-2" />
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <SecondaryButton @click="showJoinModal = false" class="mr-3">
+                            Cancel
+                        </SecondaryButton>
+                        <PrimaryButton :disabled="joinForm.processing">
+                            Join
+                        </PrimaryButton>
+                    </div>
+                </form>
+            </div>
+        </Modal>
+
         <!-- Create Room Modal -->
         <Modal :show="showCreateModal" @close="showCreateModal = false">
-        <div class="p-6">
-            <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                Create New Room
-            </h2>
+            <div class="p-6">
+                <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                    Create New Room
+                </h2>
 
-            <form @submit.prevent="createRoom" class="mt-6">
-                <div>
-                    <InputLabel for="name" value="Room Name" />
-                    <TextInput
-                        id="name"
-                        v-model="form.name"
-                        type="text"
-                        class="mt-1 block w-full"
-                        required
-                    />
-                    <InputError :message="form.errors.name" class="mt-2" />
-                </div>
-
-                <div class="mt-6">
-                    <InputLabel for="description" value="Description (Optional)" />
-                    <TextInput
-                        id="description"
-                        v-model="form.description"
-                        type="text"
-                        class="mt-1 block w-full"
-                    />
-                </div>
-
-                <div class="mt-6">
-                    <div class="flex items-center">
-                        <input
-                            type="checkbox"
-                            id="has_password"
-                            v-model="form.has_password"
-                            class="rounded border-gray-300 dark:border-gray-700"
-                        />
-                        <label for="has_password" class="ml-2">Password protect this room</label>
+                <form @submit.prevent="createRoom" class="mt-6">
+                    <div>
+                        <InputLabel for="name" value="Room Name" />
+                        <TextInput id="name" v-model="form.name" type="text" class="mt-1 block w-full" required />
+                        <InputError :message="form.errors.name" class="mt-2" />
                     </div>
 
-                    <div v-if="form.has_password" class="mt-4">
-                        <InputLabel for="password" value="Room Password" />
-                        <TextInput
-                            id="password"
-                            v-model="form.password"
-                            type="password"
-                            class="mt-1 block w-full"
-                        />
-                        <InputError :message="form.errors.password" class="mt-2" />
+                    <div class="mt-6">
+                        <InputLabel for="description" value="Description (Optional)" />
+                        <TextInput id="description" v-model="form.description" type="text" class="mt-1 block w-full" />
                     </div>
-                </div>
 
-                <div class="mt-6 flex justify-end">
-                    <PrimaryButton type="submit" :disabled="form.processing">
-                        Create Room
-                    </PrimaryButton>
-                </div>
-            </form>
-        </div>
-    </Modal>
+                    <div class="mt-6">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="has_password" v-model="form.has_password"
+                                class="rounded border-gray-300 dark:border-gray-700" />
+                            <label for="has_password" class="ml-2">Password protect this room</label>
+                        </div>
+
+                        <div v-if="form.has_password" class="mt-4">
+                            <InputLabel for="password" value="Room Password" />
+                            <TextInput id="password" v-model="form.password" type="password"
+                                class="mt-1 block w-full" />
+                            <InputError :message="form.errors.password" class="mt-2" />
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <PrimaryButton type="submit" :disabled="form.processing">
+                            Create Room
+                        </PrimaryButton>
+                    </div>
+                </form>
+            </div>
+        </Modal>
     </AuthenticatedLayout>
 </template>
