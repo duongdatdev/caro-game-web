@@ -2,15 +2,31 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Modal from '@/Components/Modal.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref } from '@vue/runtime-core';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
+import { defineProps } from '@vue/runtime-core';
+
+type Room = {
+    id: number;
+    name: string;
+    status: string;
+    created_at: string;
+    creator: {
+        name: string;
+    };
+    players: Array<{
+        name: string;
+    }>;
+    password?: string;
+};
 
 const showCreateModal = ref(false);
 const showJoinModal = ref(false);
-const selectedRoom = ref(null);
+const selectedRoom = ref<Room | null>(null);
 
 const joinForm = useForm({
     password: '',
@@ -32,7 +48,7 @@ const createRoom = () => {
     });
 };
 
-const joinRoom = (room) => {
+const joinRoom = (room: Room) => {
     selectedRoom.value = room;
     if (room.password) {
         showJoinModal.value = true;

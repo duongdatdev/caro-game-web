@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import DarkModeToggle from '@/Components/DarkModeToggle.vue';
+import { onMounted } from '@vue/runtime-core';
 
 defineProps<{
     canLogin?: boolean;
@@ -15,6 +16,16 @@ function handleImageError() {
     document.getElementById('docs-card-content')?.classList.add('!flex-row');
     document.getElementById('background')?.classList.add('!hidden');
 }
+
+onMounted(() => {
+    if (window.Echo && window.Echo.connector) {
+        window.Echo.connector.pusher.connection.bind('connected', () => {
+            console.log('Successfully connected to Pusher');
+        });
+    } else {
+        console.warn('Echo is not properly initialized');
+    }
+});
 </script>
 
 <template>

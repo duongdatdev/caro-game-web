@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from '@vue/runtime-core';
 
 const props = withDefaults(
     defineProps<{
@@ -24,9 +24,10 @@ onMounted(() => document.addEventListener('keydown', closeOnEscape));
 onUnmounted(() => document.removeEventListener('keydown', closeOnEscape));
 
 const widthClass = computed(() => {
-    return {
+    const classes: { [key: number]: string } = {
         48: 'w-48',
-    }[props.width.toString()];
+    };
+    return classes[props.width as number];
 });
 
 const alignmentClasses = computed(() => {

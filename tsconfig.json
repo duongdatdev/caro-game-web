@@ -20,7 +20,8 @@
             ]
         },
         "types": [
-            "vue"
+            "vue",
+             "@vue/runtime-core"
         ]
     },
     "include": [

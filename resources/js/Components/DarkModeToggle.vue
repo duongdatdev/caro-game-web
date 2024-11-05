@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted } from '@vue/runtime-core';
 import { useDark, useToggle } from '@vueuse/core';
 
 const isDark = useDark();

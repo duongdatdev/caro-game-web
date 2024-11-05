@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed } from '@vue/runtime-core';
 
 const emit = defineEmits(['update:checked']);
 
@@ -18,9 +18,6 @@ const proxyChecked = computed({
     },
 });
 
-function defineEmits(arg0: string[]) {
-    throw new Error('Function not implemented.');
-}
 </script>
 
 <template>

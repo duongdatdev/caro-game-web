@@ -6,6 +6,7 @@ use App\Models\Room;
 use App\Models\Game;
 use App\Events\MoveMade;
 use App\Events\GameFinished;
+use App\Events\PlayerReady;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -20,7 +21,7 @@ class GameController extends Controller
         }
 
         // Load relationships
-        $room->load(['players', 'games' => function($query) {
+        $room->load(['players', 'games' => function ($query) {
             $query->latest()->first();
         }]);
 
@@ -59,6 +60,59 @@ class GameController extends Controller
         ]);
     }
 
+    public function toggleReady(Room $room)
+    {
+        // Check if user is in the room
+        $player = $room->players()->where('user_id', Auth::id())->first();
+        if (!$player) {
+            return response()->json(['error' => 'Player not in room'], 403);
+        }
+
+        // Toggle ready state
+        $room->players()->updateExistingPivot(Auth::id(), [
+            'is_ready' => !$player->pivot->is_ready
+        ]);
+
+        // Check if all players are ready
+        $allPlayersReady = $room->players()->where('is_ready', true)->count() === $room->players()->count();
+
+        if ($allPlayersReady) {
+            $room->update(['status' => 'playing']);
+        
+            // Create a new game if one doesn't exist
+            $game = $room->games()->firstOrCreate(
+                ['status' => 'playing'],
+                [
+                    'board_state' => array_fill(0, 15, array_fill(0, 15, null)),
+                    'status' => 'playing'
+                ]
+            );
+        
+            // Convert room to array with necessary data
+            $roomData = [
+                'id' => $room->id,
+                'status' => $room->status,
+                'players' => $room->players->map(function ($player) {
+                    return [
+                        'id' => $player->id,
+                        'name' => $player->name,
+                        'pivot' => [
+                            'is_ready' => (bool)$player->pivot->is_ready
+                        ]
+                    ];
+                })->toArray()
+            ];
+
+            broadcast(new PlayerReady($room->id, $room))->toOthers();
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'is_ready' => !$player->pivot->is_ready,
+            'game_started' => $allPlayersReady
+        ]);
+    }
+
     public function makeMove(Request $request, Room $room)
     {
         $request->validate([
@@ -67,7 +121,7 @@ class GameController extends Controller
         ]);
 
         $game = $room->games()->latest()->first();
-        
+
         if (!$game || $game->status === 'finished') {
             return response()->json(['error' => 'Game not active'], 400);
         }
@@ -117,21 +171,25 @@ class GameController extends Controller
 
         foreach ($directions as $dir) {
             $count = 1;
-            
+
             // Check forward
             $i = 1;
-            while ($i <= 4 && 
-                   isset($board[$y + $dir[0] * $i][$x + $dir[1] * $i]) && 
-                   $board[$y + $dir[0] * $i][$x + $dir[1] * $i] === $playerId) {
+            while (
+                $i <= 4 &&
+                isset($board[$y + $dir[0] * $i][$x + $dir[1] * $i]) &&
+                $board[$y + $dir[0] * $i][$x + $dir[1] * $i] === $playerId
+            ) {
                 $count++;
                 $i++;
             }
-            
+
             // Check backward
             $i = 1;
-            while ($i <= 4 && 
-                   isset($board[$y - $dir[0] * $i][$x - $dir[1] * $i]) && 
-                   $board[$y - $dir[0] * $i][$x - $dir[1] * $i] === $playerId) {
+            while (
+                $i <= 4 &&
+                isset($board[$y - $dir[0] * $i][$x - $dir[1] * $i]) &&
+                $board[$y - $dir[0] * $i][$x - $dir[1] * $i] === $playerId
+            ) {
                 $count++;
                 $i++;
             }

@@ -35,6 +35,7 @@ Route::middleware('auth')->group(function () {
     //Game routes
     Route::get('/game/{room}', [GameController::class, 'show'])->name('game.show');
     Route::post('/game/{room}/move', [GameController::class, 'makeMove'])->name('game.move');
+    Route::post('/game/{room}/ready', [GameController::class, 'toggleReady'])->name('game.ready');
 
     //LeaderBoard routes
     Route::get('/leaderboard', function () {

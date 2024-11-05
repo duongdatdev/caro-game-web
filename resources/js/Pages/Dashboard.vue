@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Link, Head } from '@inertiajs/vue3';
+import { onMounted } from '@vue/runtime-core';
 
 interface PlayerStats {
     wins: number;
@@ -17,6 +18,18 @@ const stats: PlayerStats = {
     rank: 42,
     rating: 1500
 };
+
+onMounted(() => {
+    if (window.Echo?.connector?.pusher) {
+        window.Echo.connector.pusher.connection.bind('connected', () => {
+            console.log('Successfully connected to Pusher');
+        });
+        
+        window.Echo.connector.pusher.connection.bind('error', (err: any) => {
+            console.error('Pusher connection error:', err);
+        });
+    }
+});
 </script>
 
 <template>

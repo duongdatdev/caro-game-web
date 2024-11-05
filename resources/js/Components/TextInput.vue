@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref } from '@vue/runtime-core';
 
 const model = defineModel<string>({ required: true });
 

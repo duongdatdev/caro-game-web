@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed } from '@vue/runtime-core';
 
 interface Square {
     x: number;
@@ -26,7 +26,7 @@ const board = computed(() => {
         }))
     );
 
-    props.moves.forEach(move => {
+    props.moves.forEach((move: { x: number, y: number, user_id: number }) => {
         grid[move.y][move.x].value = move.user_id === props.currentPlayer ? 'X' : 'O';
     });
 

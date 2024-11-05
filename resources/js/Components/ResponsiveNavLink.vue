@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed } from '@vue/runtime-core';
 import { Link } from '@inertiajs/vue3';
 
 const props = defineProps<{
