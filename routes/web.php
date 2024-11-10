@@ -8,6 +8,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+use App\Http\Controllers\TestController;
+
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -47,6 +49,11 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('History/Index');
     })->name('history.index');
 
+    //Event Trigger route
+    Route::get('/trigger-event', [TestController::class, 'triggerEvent']);
+    Route::post('/send-test-message', [TestController::class, 'sendTestMessage']);
 });
+
+
 
 require __DIR__.'/auth.php';

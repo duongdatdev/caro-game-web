@@ -41,12 +41,12 @@ const handleClick = (x: number, y: number) => {
 
 <template>
     <div class="flex flex-col items-center">
-        <div class="bg-amber-100 p-4 rounded-lg shadow-lg">
+        <div class="bg-amber-100 p-4 rounded-lg shadow-lg ">
             <div v-for="(row, i) in board" :key="i" class="flex">
                 <div v-for="(cell, j) in row" 
                      :key="`${i}-${j}`"
                      @click="handleClick(cell.x, cell.y)"
-                     class="w-8 h-8 border border-amber-700 flex items-center justify-center cursor-pointer hover:bg-amber-200"
+                     class="w-8 h-8 md:w-7 md:h-7 sm:w-4 sm:h-4 lg:w-9 lg:h-9 border border-amber-700 flex items-center justify-center cursor-pointer hover:bg-amber-200"
                 >
                     <div v-if="cell.value === 'X'" class="w-6 h-6 rounded-full bg-black"></div>
                     <div v-if="cell.value === 'O'" class="w-6 h-6 rounded-full bg-white border-2 border-black"></div>

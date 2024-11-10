@@ -103,7 +103,7 @@ class GameController extends Controller
                 })->toArray()
             ];
 
-            broadcast(new PlayerReady($room->id, $room))->toOthers();
+            broadcast(new PlayerReady($room->id, $room, $game->id, $player->id))->toOthers();
         }
 
         return response()->json([

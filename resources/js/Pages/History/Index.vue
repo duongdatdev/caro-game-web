@@ -37,7 +37,7 @@ const history = ref<GameHistory[]>([
                     Game History
                 </h2>
                 <div class="flex gap-2">
-                    <select class="rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-sm">
+                    <select class="rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-sm dark:text-gray-50">
                         <option value="all">All Games</option>
                         <option value="wins">Wins</option>
                         <option value="losses">Losses</option>
@@ -54,7 +54,7 @@ const history = ref<GameHistory[]>([
                         <div class="overflow-x-auto">
                             <table class="min-w-full">
                                 <thead>
-                                    <tr class="text-left text-gray-500 dark:text-gray-400">
+                                    <tr class="text-left text-gray-500 dark:text-gray-500">
                                         <th class="pb-4 font-medium">Date</th>
                                         <th class="pb-4 font-medium">Opponent</th>
                                         <th class="pb-4 font-medium">Result</th>
@@ -63,7 +63,7 @@ const history = ref<GameHistory[]>([
                                         <th class="pb-4 font-medium">Moves</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700 dark:text-gray-50">
                                     <tr v-for="game in history" 
                                         :key="game.id"
                                         class="hover:bg-gray-50 dark:hover:bg-gray-700 transition">

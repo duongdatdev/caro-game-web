@@ -6,6 +6,10 @@ import Pusher from 'pusher-js';
 window.axios = axios;
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
+//Don't include this line in production
+Pusher.logToConsole = true;
+
+
 try {
     // Debug logging for environment variables
     console.log('Pusher Config:', {
@@ -22,17 +26,9 @@ try {
         broadcaster: 'pusher',
         key: import.meta.env.VITE_PUSHER_APP_KEY,
         cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
-        forceTLS: true,
         encrypted: true,
         disableStats: true,
-        enabledTransports: ['ws', 'wss'],
-        auth: {
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                Accept: 'application/json'
-            }
-        },
-        authEndpoint: '/broadcasting/auth'
+        authEndpoint: '/broadcasting/auth',
     });
 
     // Connection monitoring
@@ -44,13 +40,8 @@ try {
         console.error('Pusher connection error:', error);
     });
 
+        
 } catch (error) {
     console.error('Echo initialization error:', error);
 }
 
-declare global {
-    interface Window {
-        Pusher: any;
-        Echo: Echo;
-    }
-}

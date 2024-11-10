@@ -162,7 +162,7 @@ const selectedTimeframe = ref('All Time');
                                         <th class="pb-4 font-medium">Win Rate</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-yellow-400">
                                     <tr v-for="player in players" :key="player.rank"
                                         :class="[
                                             'hover:bg-gray-50 dark:hover:bg-gray-700 transition',

@@ -6,6 +6,8 @@ import { ref, onMounted, onUnmounted } from '@vue/runtime-core';
 import axios from 'axios';
 import { defineProps } from '@vue/runtime-core';
 import { defineComponent } from '@vue/runtime-core';
+import Pusher from 'pusher-js';
+import Echo from 'laravel-echo';
 
 const props = defineProps<{
     room: {
@@ -40,6 +42,7 @@ const gameStatus = ref(props.room.status);
 const messages = ref<Array<{id: number; user_id: number; message: string}>>([]);
 const newMessage = ref('');
 const players = ref(props.room.players);
+
 
 // Toggle player ready status
 const toggleReady = async () => {
@@ -126,7 +129,7 @@ onUnmounted(() => {
     <AuthenticatedLayout>
         <template #header>
             <div class="flex justify-between items-center">
-                <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-50">
                     {{ room.name }}
                 </h2>
                 <div class="text-sm text-gray-600 dark:text-gray-400">
@@ -141,7 +144,7 @@ onUnmounted(() => {
                     <!-- Game Info -->
                     <div class="w-full lg:w-1/4">
                         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-                            <h3 class="text-lg font-semibold mb-4">Players</h3>
+                            <h3 class="text-lg font-semibold mb-4 dark:text-gray-50">Players</h3>
                             <div class="space-y-2">
                                 <div v-for="player in room.players" :key="player.id"
                                     :class="{ 'text-green-600': player.pivot.is_ready }">

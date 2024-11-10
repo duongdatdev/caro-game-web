@@ -96,7 +96,7 @@ defineProps<{
 
         <!-- Room List -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div v-for="room in rooms" :key="room.id" class="p-4 border rounded-lg dark:border-gray-700">
+            <div v-for="room in rooms" :key="room.id" class="p-4 border border-black rounded-lg dark:border-gray-700 dark:text-gray-50">
                 <div class="flex justify-between items-start">
                     <div>
                         <h3 class="text-lg font-semibold">{{ room.name }}</h3>
