@@ -69,6 +69,7 @@ export default defineComponent({
         window.Echo.channel('test-channel')
           .listen('.test-event', (e: any) => {
             messages.value.push(e);
+            console.log('Received message:', e);
           });
       }
     });

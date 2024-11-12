@@ -88,7 +88,7 @@ const sendMessage = async () => {
 
 onMounted(() => {
     // Subscribe to real-time events
-    window.Echo.private(`room.${props.room.id}`)
+    window.Echo.channel(`room.${props.room.id}`)
         .listen('.move.made', (e: any) => {
             moves.value.push(e.move);
             isYourTurn.value = e.move.user_id !== props.currentPlayer;

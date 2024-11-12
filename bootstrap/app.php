@@ -11,6 +11,12 @@ return Application::configure(basePath: dirname(__DIR__))
         channels: __DIR__.'/../routes/channels.php',
         health: '/up',
     )
+    ->withBroadcasting(
+        channels: __DIR__.'/../routes/channels.php',
+        attributes: [
+            'middleware' => ['web', 'auth']
+        ]
+    )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,

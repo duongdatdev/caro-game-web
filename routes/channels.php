@@ -38,39 +38,7 @@ Broadcast::channel('room.{roomId}', function ($user, $roomId) {
     }
 });
 
-// Test channel authorization with enhanced logging
-// Broadcast::channel('test-channel', function ($user) {
-//     Log::debug('Test channel callback triggered');
-    
-//     try {
-//         // Force log write
-//         Log::debug('Test authorization START');
-//         Log::debug('Auth check status: ' . (auth()->check() ? 'true' : 'false'));
-//         Log::debug('User present: ' . ($user ? 'yes' : 'no'));
-        
-//         $isAuthorized = auth()->check() && !is_null($user);
-        
-//         Log::info('Test channel result', [
-//             'authorized' => $isAuthorized,
-//             'user_id' => $user ? $user->id : null,
-//             'time' => now()
-//         ]);
-        
-//         // Force log write
-//         Log::debug('Test authorization END');
-        
-//         return $isAuthorized;
-//     } catch (\Exception $e) {
-//         Log::error('Test channel error: ' . $e->getMessage());
-//         return false;
-//     }
-// });
-
-// // Verify routes are registered
-// Log::info('Broadcasting routes registered', [
-//     'channels' => ['room.{roomId}', 'test-channel'],
-//     'time' => now()
-// ]);
 Broadcast::channel('test-channel', function() {
-    return true; // Always allow access
-  });
+    Log::debug('Test channel authorization attempt');
+    return true;
+});
