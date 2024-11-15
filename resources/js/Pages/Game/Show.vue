@@ -65,7 +65,7 @@ const toggleReady = async () => {
 // Make a move
 const makeMove = async (x: number, y: number) => {
     if (!isYourTurn.value || gameStatus.value !== 'playing') return;
-
+    
     try {
         const response = await axios.post(`/game/${props.room.id}/move`, { x, y });
         if (response.data.status === 'win') {
@@ -116,7 +116,9 @@ onMounted(() => {
 
             // Update game status if all players are ready
             if (e.roomStatus === 'playing') {
+                console.log(e.roomStatus);
                 gameStatus.value = 'playing';
+                console.log('Game started');
                 isYourTurn.value = props.room.created_by === props.currentPlayer;
             }
         })
