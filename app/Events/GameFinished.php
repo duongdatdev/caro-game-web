@@ -13,23 +13,20 @@ class GameFinished implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    /**
-     * Create a new event instance.
-     */
     public function __construct(
         public int $roomId,
         public int $winnerId
     ) {}
 
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
-     */
     public function broadcastOn(): array
     {
         return [
-            new Channel('room.' . $this->roomId),
+            new Channel('private-room.' . $this->roomId)
         ];
+    }
+
+    public function broadcastAs()
+    {
+        return 'game.finished';
     }
 }

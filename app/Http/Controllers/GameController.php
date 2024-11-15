@@ -136,6 +136,8 @@ class GameController extends Controller
     // Check for win condition
     if ($this->checkWin($boardState, $request->x, $request->y, Auth::id())) {
         $game->update(['status' => 'finished']);
+        broadcast(new GameFinished($room->id, Auth::id()));
+
         return response()->json(['status' => 'win']);
     }
 

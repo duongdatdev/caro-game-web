@@ -5,9 +5,7 @@ import { Head } from '@inertiajs/vue3';
 import { ref, onMounted, onUnmounted } from '@vue/runtime-core';
 import axios from 'axios';
 import { defineProps } from '@vue/runtime-core';
-import { defineComponent } from '@vue/runtime-core';
-import Pusher from 'pusher-js';
-import Echo from 'laravel-echo';
+import WinModal from '@/Components/Game/WinModal.vue';
 
 const props = defineProps<{
     room: {
@@ -43,6 +41,8 @@ const messages = ref<Array<{ id: number; user_id: number; message: string }>>([]
 const newMessage = ref('');
 const players = ref(props.room.players);
 
+const showWinModal = ref(false);
+const winner = ref('');
 
 // Toggle player ready status
 const toggleReady = async () => {
@@ -84,7 +84,7 @@ const makeMove = async (x: number, y: number) => {
         }
     } catch (error) {
         // If request fails, rollback the move
-        moves.value = moves.value.filter(move => 
+        moves.value = moves.value.filter(move =>
             move.x !== x || move.y !== y
         );
         isYourTurn.value = true;
@@ -142,6 +142,11 @@ onMounted(() => {
                 console.log('Game started');
                 isYourTurn.value = props.room.created_by === props.currentPlayer;
             }
+        })
+        .listen('.game.finished', (e: any) => {
+            gameStatus.value = 'finished';
+            winner.value = getPlayerName(e.winnerId) || 'Opponent';
+            showWinModal.value = true;
         })
         .listenForWhisper('typing', (e: any) => {
             console.log(e.name);
@@ -203,8 +208,11 @@ onUnmounted(() => {
                     <!-- Game Board -->
                     <div class="w-full lg:w-2/4">
                         <Board :moves="moves" :disabled="!isYourTurn || gameStatus !== 'playing'"
-                            :current-player="currentPlayer" @move="makeMove" />
+                            :current-player="currentPlayer" :is-game-finished="gameStatus === 'finished'"
+                            @move="makeMove" />
                     </div>
+
+                    <WinModal :show="showWinModal" :winner="winner" />
 
                     <!-- Chat -->
                     <div class="w-full lg:w-1/4">
@@ -221,8 +229,8 @@ onUnmounted(() => {
                             <div class="flex gap-2">
                                 <input v-model="newMessage" type="text"
                                     class="flex-1 rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900"
-                                    placeholder="Type a message..." @keyup.enter="sendMessage">
-                                <button @click="sendMessage"
+                                    placeholder="Type a message..." @keyup.enter="sendMessage()">
+                                <button @click="sendMessage()"
                                     class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
                                     Send
                                 </button>

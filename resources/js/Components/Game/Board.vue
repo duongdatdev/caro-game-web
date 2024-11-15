@@ -11,6 +11,7 @@ const props = defineProps<{
     moves: Array<{ x: number, y: number, user_id: number }>;
     disabled: boolean;
     currentPlayer: number;
+    isGameFinished: boolean; 
 }>();
 
 const emit = defineEmits<{
