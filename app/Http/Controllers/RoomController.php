@@ -7,6 +7,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
+use App\Events\PlayerJoined;
 
 class RoomController extends Controller
 {
@@ -68,6 +69,16 @@ class RoomController extends Controller
         $room->players()->attach(Auth::id(), [
             'is_ready' => false
         ]);
+
+        $player = [
+            'id' => Auth::id(),
+            'name' => Auth::user()->name,
+            'pivot' => [
+                'is_ready' => false
+            ]
+        ];
+        
+        broadcast(new PlayerJoined($room->id, $player));
     
         return redirect()->route('game.show', ['room' => $room->id]);
     }

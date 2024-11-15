@@ -63,68 +63,30 @@ class GameController extends Controller
 
     public function toggleReady(Room $room)
     {
-        // Check if user is in the room
         $player = $room->players()->where('user_id', Auth::id())->first();
         if (!$player) {
             return response()->json(['error' => 'Player not in room'], 403);
         }
-
+    
         // Toggle ready state
         $room->players()->updateExistingPivot(Auth::id(), [
             'is_ready' => !$player->pivot->is_ready
         ]);
-
+    
         // Check if all players are ready
         $allPlayersReady = $room->players()->where('is_ready', true)->count() === $room->players()->count();
-
         if ($allPlayersReady) {
             $room->update(['status' => 'playing']);
-
-            // Create a new game if one doesn't exist
-            $game = $room->games()->firstOrCreate(
-                ['status' => 'playing'],
-                [
-                    'board_state' => array_fill(0, 15, array_fill(0, 15, null)),
-                    'status' => 'playing'
-                ]
-            );
-
-            // Convert room to array with necessary data
-            $roomData = [
-                'id' => $room->id,
-                'status' => $room->status,
-                'players' => $room->players->map(function ($player) {
-                    return [
-                        'id' => $player->id,
-                        'name' => $player->name,
-                        'pivot' => [
-                            'is_ready' => (bool)$player->pivot->is_ready
-                        ]
-                    ];
-                })->toArray()
-            ];
-
-            //Config
-            $options = array(
-                'cluster' => 'ap1',
-                'encrypted' => true
-            );
-
-            $pusher = new Pusher(
-                env('PUSHER_APP_KEY'),
-                env('PUSHER_APP_SECRET'),
-                env('PUSHER_APP_ID'),
-                $options
-            );
-
-            $pusher->trigger('room.' . $room->id, 'player.ready', [
-                'room' => $roomData,
-                'game_id' => $game->id,
-                'player_id' => $player->id
-            ]);
-            // broadcast(new PlayerReady($room->id, $room, $game->id, $player->id))->toOthers();
         }
-
+    
+        // Broadcast event
+        broadcast(new PlayerReady(
+            $room->id,
+            Auth::id(),
+            !$player->pivot->is_ready,
+            $allPlayersReady ? 'playing' : 'waiting'
+        ))->toOthers();
+    
         return response()->json([
             'status' => 'success',
             'is_ready' => !$player->pivot->is_ready,

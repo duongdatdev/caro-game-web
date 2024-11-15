@@ -8,21 +8,17 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class PlayerReady implements ShouldBroadcast
+class PlayerJoined implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $roomId;
-    public $playerId;
-    public $isReady;
-    public $roomStatus;
+    public $player;
 
-    public function __construct($roomId, $playerId, $isReady, $roomStatus)
+    public function __construct($roomId, $player)
     {
         $this->roomId = $roomId;
-        $this->playerId = $playerId;
-        $this->isReady = $isReady;
-        $this->roomStatus = $roomStatus;
+        $this->player = $player;
     }
 
     public function broadcastOn()
@@ -32,6 +28,6 @@ class PlayerReady implements ShouldBroadcast
 
     public function broadcastAs()
     {
-        return 'player.ready';
+        return 'player.joined';
     }
 }

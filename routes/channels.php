@@ -4,8 +4,9 @@ use Illuminate\Support\Facades\Broadcast;
 use App\Models\Room;
 use Illuminate\Support\Facades\Log;
 
-// Add trace for file load
-Log::debug('Loading channels.php');
+// Broadcast::channel('user.{userId}', function ($user, $userId) {
+//     return $user->id === $userId;
+//   });
 
 // Room channel authorization 
 Broadcast::channel('room.{roomId}', function ($user, $roomId) {

@@ -11,8 +11,8 @@ class TestController extends Controller
 {
     public function triggerEvent(Request $request)
     {
-        $data = ['message' => 'This is a test event'];
-        event(new TestEvent($data));
+        // $data = ['message' => 'This is a test event'];
+        // event(new TestEvent($data));
         return Inertia::render('TestMessage/Index');
     }
 

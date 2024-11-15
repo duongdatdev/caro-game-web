@@ -32,14 +32,14 @@ const props = defineProps<{
 }>();
 
 const getPlayerName = (userId: number): string | undefined => {
-  const player = props.room?.players.find((p: { id: number }) => p.id === userId);
-  return player ? player.name : undefined;
+    const player = props.room?.players.find((p: { id: number }) => p.id === userId);
+    return player ? player.name : undefined;
 };
 
 const moves = ref(props.room.moves);
 const isYourTurn = ref(false);
 const gameStatus = ref(props.room.status);
-const messages = ref<Array<{id: number; user_id: number; message: string}>>([]);
+const messages = ref<Array<{ id: number; user_id: number; message: string }>>([]);
 const newMessage = ref('');
 const players = ref(props.room.players);
 
@@ -48,6 +48,11 @@ const players = ref(props.room.players);
 const toggleReady = async () => {
     try {
         const response = await axios.post(`/game/${props.room.id}/ready`);
+        const player = players.value.find(p => p.id === props.currentPlayer);
+        if (player) {
+            player.pivot.is_ready = !player.pivot.is_ready;
+        }
+
         if (response.data.game_started) {
             gameStatus.value = 'playing';
             isYourTurn.value = props.room.created_by === props.currentPlayer;
@@ -60,7 +65,7 @@ const toggleReady = async () => {
 // Make a move
 const makeMove = async (x: number, y: number) => {
     if (!isYourTurn.value || gameStatus.value !== 'playing') return;
-    
+
     try {
         const response = await axios.post(`/game/${props.room.id}/move`, { x, y });
         if (response.data.status === 'win') {
@@ -75,7 +80,7 @@ const makeMove = async (x: number, y: number) => {
 // Send chat message
 const sendMessage = async () => {
     if (!newMessage.value.trim()) return;
-    
+
     try {
         await axios.post(`/game/${props.room.id}/message`, {
             message: newMessage.value
@@ -87,13 +92,21 @@ const sendMessage = async () => {
 };
 
 onMounted(() => {
-    // Subscribe to real-time events
-    window.Echo.channel(`room.${props.room.id}`)
+    // Subscribe to real-time events using private channel
+    window.Echo.private(`room.${props.room.id}`)
+        .listen('.player.joined', (e: any) => {
+            // Add new player to players list
+            if (players.value.some((p: { id: number }) => p.id === e.player.id)) return;
+            players.value.push(e.player);
+            console.log('New player joined:', e.player.name);
+        })
         .listen('.move.made', (e: any) => {
+            // Add new move to moves list
             moves.value.push(e.move);
             isYourTurn.value = e.move.user_id !== props.currentPlayer;
         })
         .listen('.player.ready', (e: any) => {
+            // Update player ready status
             const playerIndex = players.value.findIndex((p: { id: number }) => p.id === e.player_id);
             if (playerIndex !== -1) {
                 players.value[playerIndex].pivot.is_ready = e.is_ready;
@@ -153,7 +166,7 @@ onUnmounted(() => {
                                 </div>
                             </div>
 
-                            <button v-if="gameStatus === 'waiting'" @click="toggleReady"
+                            <button v-if="gameStatus === 'waiting'" @click="toggleReady()"
                                 class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                                 Toggle Ready
                             </button>
