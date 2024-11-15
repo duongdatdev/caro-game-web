@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
@@ -18,6 +19,23 @@ class MoveMade implements ShouldBroadcast
 
     public function broadcastOn()
     {
-        return new Channel('room.' . $this->roomId);
+        return new Channel('private-room.' . $this->roomId);
+    }
+
+    public function broadcastAs()
+    {
+        return 'move.made';
+    }
+
+    public function broadcastWith()
+    {
+        return [
+            'move' => [
+                'x' => $this->move['x'],
+                'y' => $this->move['y'],
+                'user_id' => $this->move['user_id'],
+                'order' => $this->move['order']
+            ]
+        ];
     }
 }

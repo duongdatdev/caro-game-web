@@ -65,14 +65,29 @@ const toggleReady = async () => {
 // Make a move
 const makeMove = async (x: number, y: number) => {
     if (!isYourTurn.value || gameStatus.value !== 'playing') return;
-    
+
+    // Add move immediately to local state
+    const newMove = {
+        x: x,
+        y: y,
+        user_id: props.currentPlayer,
+        order: moves.value.length + 1
+    };
+    moves.value.push(newMove);
+    isYourTurn.value = false;
+
+
     try {
         const response = await axios.post(`/game/${props.room.id}/move`, { x, y });
         if (response.data.status === 'win') {
             gameStatus.value = 'finished';
         }
-        isYourTurn.value = false;
     } catch (error) {
+        // If request fails, rollback the move
+        moves.value = moves.value.filter(move => 
+            move.x !== x || move.y !== y
+        );
+        isYourTurn.value = true;
         console.error('Failed to make move:', error);
     }
 };
@@ -102,12 +117,18 @@ onMounted(() => {
         })
         .listen('.move.made', (e: any) => {
             // Add new move to moves list
-            moves.value.push(e.move);
+            const newMove = {
+                x: e.move.x,
+                y: e.move.y,
+                user_id: e.move.user_id,
+                order: e.move.order
+            };
+            moves.value.push(newMove);
             isYourTurn.value = e.move.user_id !== props.currentPlayer;
         })
         .listen('.player.ready', (e: any) => {
             console.log('Ready event received:', e); // Add logging
-            
+
             // Update player ready status
             const playerIndex = players.value.findIndex(p => p.id === e.playerId); // Update to match event data
             if (playerIndex !== -1) {

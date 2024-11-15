@@ -3,7 +3,7 @@ import { computed } from '@vue/runtime-core';
 
 interface Square {
     x: number;
-    y: number;
+    y: number; 
     value: null | 'X' | 'O';
 }
 
@@ -34,22 +34,46 @@ const board = computed(() => {
 });
 
 const handleClick = (x: number, y: number) => {
-    if (props.disabled || board.value[y][x].value !== null) return;
+    // Don't allow moves if board is disabled or cell is already occupied
+    if (props.disabled || board.value[y][x].value !== null) {
+        return;
+    }
+
+    // Emit move event to parent component
     emit('move', x, y);
 };
 </script>
 
 <template>
     <div class="flex flex-col items-center">
-        <div class="bg-amber-100 p-4 rounded-lg shadow-lg ">
+        <div class="bg-amber-100 p-4 rounded-lg shadow-lg">
             <div v-for="(row, i) in board" :key="i" class="flex">
                 <div v-for="(cell, j) in row" 
-                     :key="`${i}-${j}`"
-                     @click="handleClick(cell.x, cell.y)"
-                     class="w-8 h-8 md:w-7 md:h-7 sm:w-4 sm:h-4 lg:w-9 lg:h-9 border border-amber-700 flex items-center justify-center cursor-pointer hover:bg-amber-200"
+                    :key="`${i}-${j}`"
+                    @click="handleClick(cell.x, cell.y)"
+                    :class="{
+                        'cursor-not-allowed': props.disabled || cell.value !== null,
+                        'cursor-pointer': !props.disabled && cell.value === null,
+                        'hover:bg-amber-200': !props.disabled && cell.value === null,
+                        'w-8 h-8': true,
+                        'md:w-7 md:h-7': true,
+                        'sm:w-4 sm:h-4': true,
+                        'lg:w-9 lg:h-9': true,
+                        'border': true,
+                        'border-amber-700': true,
+                        'flex': true,
+                        'items-center': true,
+                        'justify-center': true
+                    }"
                 >
-                    <div v-if="cell.value === 'X'" class="w-6 h-6 rounded-full bg-black"></div>
-                    <div v-if="cell.value === 'O'" class="w-6 h-6 rounded-full bg-white border-2 border-black"></div>
+                    <div v-if="cell.value === 'X'" 
+                        class="w-6 h-6 rounded-full bg-black"
+                        :title="`Player ${props.currentPlayer}'s move`">
+                    </div>
+                    <div v-if="cell.value === 'O'" 
+                        class="w-6 h-6 rounded-full bg-white border-2 border-black"
+                        :title="'Opponent\'s move'">
+                    </div>
                 </div>
             </div>
         </div>
