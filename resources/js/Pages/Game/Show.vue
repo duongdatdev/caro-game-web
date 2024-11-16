@@ -127,12 +127,12 @@ onMounted(() => {
             isYourTurn.value = e.move.user_id !== props.currentPlayer;
         })
         .listen('.player.ready', (e: any) => {
-            console.log('Ready event received:', e); // Add logging
+            console.log('Ready event received:', e);
 
             // Update player ready status
-            const playerIndex = players.value.findIndex(p => p.id === e.playerId); // Update to match event data
+            const playerIndex = players.value.findIndex(p => p.id === e.playerId);
             if (playerIndex !== -1) {
-                players.value[playerIndex].pivot.is_ready = e.isReady; // Update to match event data
+                players.value[playerIndex].pivot.is_ready = e.isReady;
             }
 
             // Update game status if all players are ready

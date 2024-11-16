@@ -39,7 +39,7 @@ class RoomController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'password' => $request->password ? bcrypt($request->password) : null,
-            'max_players' => 2, // Fixed at 2 players
+            'max_players' => 2,
             'created_by' => Auth::id(),
             'status' => 'waiting'
         ]);

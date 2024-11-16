@@ -8,7 +8,7 @@ import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
-import { defineProps } from '@vue/runtime-core';
+import { defineProps, computed } from '@vue/runtime-core';
 
 type Room = {
     id: number;
@@ -27,6 +27,35 @@ type Room = {
 const showCreateModal = ref(false);
 const showJoinModal = ref(false);
 const selectedRoom = ref<Room | null>(null);
+
+const props = defineProps<{
+    rooms: {
+        id: number;
+        name: string;
+        status: string;
+        created_at: string;
+        creator: {
+            name: string;
+        };
+        players: Array<{
+            name: string;
+        }>;
+    }[];
+}>();
+
+const statusFilter = ref('active');
+
+const filteredRooms = computed(() => {
+    if (statusFilter.value === 'all') return props.rooms;
+    if (statusFilter.value === 'active') {
+        return props.rooms.filter(room => room.status !== 'finished');
+    }
+    return props.rooms.filter(room => room.status === 'finished');
+});
+
+const activeRooms = computed(() => {
+    return props.rooms.filter(room => room.status !== 'finished');
+});
 
 const joinForm = useForm({
     password: '',
@@ -61,21 +90,6 @@ const joinRoom = (room: Room) => {
         });
     }
 };
-
-defineProps<{
-    rooms: {
-        id: number;
-        name: string;
-        status: string;
-        created_at: string;
-        creator: {
-            name: string;
-        };
-        players: Array<{
-            name: string;
-        }>;
-    }[];
-}>();
 </script>
 
 <template>
@@ -93,10 +107,18 @@ defineProps<{
                 </PrimaryButton>
             </div>
         </template>
+        <div class="mb-4">
+            <select v-model="statusFilter" class="rounded-md border-gray-300">
+                <option value="active">Active Rooms</option>
+                <option value="finished">Finished Rooms</option>
+                <option value="all">All Rooms</option>
+            </select>
+        </div>
 
         <!-- Room List -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div v-for="room in rooms" :key="room.id" class="p-4 border border-black rounded-lg dark:border-gray-700 dark:text-gray-50">
+            <div v-for="room in filteredRooms" :key="room.id"
+                class="p-4 border border-black rounded-lg dark:border-gray-700 dark:text-gray-50">
                 <div class="flex justify-between items-start">
                     <div>
                         <h3 class="text-lg font-semibold">{{ room.name }}</h3>
