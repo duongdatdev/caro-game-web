@@ -41,7 +41,7 @@ const showingNavigationDropdown = ref(false);
                                     Leaderboard
                                 </NavLink>
 
-                                <NavLink :href="route('history.index')" :active="route().current('history.index')">
+                                <NavLink :href="route('history')" :active="route().current('history')">
                                     History
                                 </NavLink>
                             </div>

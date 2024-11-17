@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\HistoryController;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -46,10 +47,8 @@ Route::middleware('auth')->group(function () {
     ->name('leaderboard');
 
     // Game History route
-    Route::get('/history', function () {
-        return Inertia::render('History/Index');
-    })->name('history.index');
-
+    Route::get('/history', [HistoryController::class, 'index'])->name('history');
+    Route::get('/history/{game}', [HistoryController::class, 'show'])->name('history.show');
     //Event Trigger route
     Route::get('/trigger-event', [TestController::class, 'triggerEvent']);
     Route::post('/send-test-message', [TestController::class, 'sendTestMessage']);

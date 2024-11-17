@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -30,12 +31,17 @@ class Room extends Model
     public function players()
     {
         return $this->belongsToMany(User::class, 'room_players')
-                    ->withPivot('is_ready')
-                    ->withTimestamps();
+            ->withPivot('is_ready')
+            ->withTimestamps();
     }
 
     public function games(): HasMany
     {
         return $this->hasMany(Game::class);
+    }
+
+    public function getPlayersAttribute()
+    {
+        return $this->room->players;
     }
 }
