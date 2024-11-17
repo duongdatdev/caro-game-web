@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\LeaderboardController;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -40,9 +41,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/game/{room}/ready', [GameController::class, 'toggleReady'])->name('game.ready');
 
     //LeaderBoard routes
-    Route::get('/leaderboard', function () {
-        return Inertia::render('Leaderboard/Index');
-    })->name('leaderboard');
+    Route::get('/leaderboard', [LeaderboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('leaderboard');
 
     // Game History route
     Route::get('/history', function () {

@@ -8,10 +8,12 @@ use App\Events\MoveMade;
 use App\Events\GameFinished;
 use App\Events\PlayerReady;
 use App\Models\Move;
+use App\Models\PlayerStats;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Pusher\Pusher;
+use Illuminate\Support\Facades\DB;
 
 class GameController extends Controller
 {
@@ -68,18 +70,18 @@ class GameController extends Controller
         if (!$player) {
             return response()->json(['error' => 'Player not in room'], 403);
         }
-    
+
         // Toggle ready state
         $room->players()->updateExistingPivot(Auth::id(), [
             'is_ready' => !$player->pivot->is_ready
         ]);
-    
+
         // Check if all players are ready
         $allPlayersReady = $room->players()->where('is_ready', true)->count() === $room->players()->count();
         if ($allPlayersReady) {
             $room->update(['status' => 'playing']);
         }
-    
+
         // Broadcast event
         broadcast(new PlayerReady(
             $room->id,
@@ -87,7 +89,7 @@ class GameController extends Controller
             !$player->pivot->is_ready,
             $allPlayersReady ? 'playing' : 'waiting'
         ));
-    
+
         return response()->json([
             'status' => 'success',
             'is_ready' => !$player->pivot->is_ready,
@@ -96,63 +98,78 @@ class GameController extends Controller
     }
 
     public function makeMove(Request $request, Room $room)
-{
-    $request->validate([
-        'x' => 'required|integer|min:0|max:14',
-        'y' => 'required|integer|min:0|max:14',
-    ]);
-
-    $game = $room->games()->latest()->first();
-    
-    if (!$game || $game->status === 'finished') {
-        return response()->json(['error' => 'Game not active'], 400);
-    }
-
-    // Get last move to verify turn
-    $lastMove = $game->moves()->latest()->first();
-    if ($lastMove && $lastMove->user_id === Auth::id()) {
-        return response()->json(['error' => 'Not your turn'], 400);
-    }
-
-    // Create the move
-    $move = new Move([
-        'user_id' => Auth::id(),
-        'x' => $request->x,
-        'y' => $request->y,
-        'order' => $game->moves()->count() + 1
-    ]);
-    
-    $game->moves()->save($move);
-
-    // Update game state
-    $boardState = $game->board_state ?? array_fill(0, 15, array_fill(0, 15, null));
-    $boardState[$request->y][$request->x] = Auth::id();
-    $game->board_state = $boardState;
-    $game->save();
-
-    // Broadcast move to other players
-    broadcast(new MoveMade($room->id, $move->toArray()))->toOthers();
-
-    // Check for win condition
-    if ($this->checkWin($boardState, $request->x, $request->y, Auth::id())) {
-        // Update game status
-        $game->update([
-            'status' => 'finished',
-            'winner_id' => Auth::id()
-        ]);
-        
-        // Update room status
-        $room->update([
-            'status' => 'finished'
+    {
+        $request->validate([
+            'x' => 'required|integer|min:0|max:14',
+            'y' => 'required|integer|min:0|max:14',
         ]);
 
-        broadcast(new GameFinished($room->id, Auth::id()));
+        $game = $room->games()->latest()->first();
 
-        return response()->json(['status' => 'win']);
+        if (!$game || $game->status === 'finished') {
+            return response()->json(['error' => 'Game not active'], 400);
+        }
+
+        // Get last move to verify turn
+        $lastMove = $game->moves()->latest()->first();
+        if ($lastMove && $lastMove->user_id === Auth::id()) {
+            return response()->json(['error' => 'Not your turn'], 400);
+        }
+
+        // Create the move
+        $move = new Move([
+            'user_id' => Auth::id(),
+            'x' => $request->x,
+            'y' => $request->y,
+            'order' => $game->moves()->count() + 1
+        ]);
+
+        $game->moves()->save($move);
+
+        // Update game state
+        $boardState = $game->board_state ?? array_fill(0, 15, array_fill(0, 15, null));
+        $boardState[$request->y][$request->x] = Auth::id();
+        $game->board_state = $boardState;
+        $game->save();
+
+        // Broadcast move to other players
+        broadcast(new MoveMade($room->id, $move->toArray()))->toOthers();
+
+        // Check for win condition
+        if ($this->checkWin($boardState, $request->x, $request->y, Auth::id())) {
+            // Update game status
+            $game->update([
+                'status' => 'finished',
+                'winner_id' => Auth::id()
+            ]);
+
+            // Update room status
+            $room->update(['status' => 'finished']);
+
+            // Update player stats
+            $winner = Auth::user();
+            $loser = $room->players->where('id', '!=', Auth::id())->first();
+
+            // Update winner stats
+            $winnerStats = PlayerStats::firstOrCreate(['user_id' => $winner->id]);
+            $winnerStats->increment('wins');
+            $winnerStats->updateRating(true);
+
+            // Update loser stats
+            if ($loser) {
+                $loserStats = PlayerStats::firstOrCreate(['user_id' => $loser->id]);
+                $loserStats->increment('losses');
+                $loserStats->updateRating(false);
+            }
+
+            // Broadcast the game finished event
+            broadcast(new GameFinished($room->id, Auth::id()));
+
+            return response()->json(['status' => 'win']);
+        }
+
+        return response()->json(['status' => 'success']);
     }
-
-    return response()->json(['status' => 'success']);
-}
 
     private function checkWin($board, $x, $y, $playerId): bool
     {
