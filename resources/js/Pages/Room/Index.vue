@@ -55,29 +55,9 @@ const filteredRooms = computed(() => {
     return props.rooms.filter(room => room.status === 'finished');
 });
 
-const activeRooms = computed(() => {
-    return props.rooms.filter(room => room.status !== 'finished');
-});
-
 const joinForm = useForm({
     password: '',
 });
-
-const form = useForm({
-    name: '',
-    description: '',
-    password: '',
-    has_password: false
-});
-
-const createRoom = () => {
-    form.post(route('rooms.store'), {
-        onSuccess: () => {
-            showCreateModal.value = false;
-            form.reset();
-        },
-    });
-};
 
 const joinRoom = (room: Room) => {
     selectedRoom.value = room;
@@ -173,8 +153,8 @@ const joinRoom = (room: Room) => {
                 </form>
             </div>
         </Modal>
-        <CreateRoomModal :show="showCreateModal" @close="showCreateModal = false" />
-        <!-- Create Room Modal -->
 
+        <!-- Create Room Modal -->
+        <CreateRoomModal :show="showCreateModal" @close="showCreateModal = false" />
     </AuthenticatedLayout>
 </template>
