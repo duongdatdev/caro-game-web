@@ -192,7 +192,9 @@ onUnmounted(() => {
                             <h3 class="text-lg font-semibold mb-4 dark:text-gray-50">Players</h3>
                             <div class="space-y-2">
                                 <div v-for="player in room.players" :key="player.id"
-                                    :class="{ 'text-green-600': player.pivot.is_ready }">
+                                    :class="{ 'text-green-600': player.pivot.is_ready,
+                                    'text-gray-600 dark:text-gray-50': !player.pivot.is_ready
+                                    }">
                                     {{ player.name }}
                                     <span v-if="player.pivot.is_ready">(Ready)</span>
                                 </div>
