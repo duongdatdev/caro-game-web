@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\GameController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\HistoryController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 use App\Http\Controllers\TestController;
 
@@ -21,9 +23,9 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+->middleware(['auth','verified'])
+->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     //Profile routes
@@ -43,8 +45,8 @@ Route::middleware('auth')->group(function () {
 
     //LeaderBoard routes
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('leaderboard');
+        ->middleware(['auth', 'verified'])
+        ->name('leaderboard');
 
     // Game History route
     Route::get('/history', [HistoryController::class, 'index'])->name('history');
@@ -58,4 +60,4 @@ Route::middleware('auth')->group(function () {
 
 
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Link, Head } from '@inertiajs/vue3';
 import { onMounted } from '@vue/runtime-core';
+import { defineProps } from '@vue/runtime-core';
 
 interface PlayerStats {
     wins: number;
@@ -11,13 +12,10 @@ interface PlayerStats {
     rating: number;
 }
 
-const stats: PlayerStats = {
-    wins: 10,
-    losses: 5,
-    draws: 2,
-    rank: 42,
-    rating: 1500
-};
+const props = defineProps({
+    rooms: Array,
+    stats: Object,
+});
 
 onMounted(() => {
     if (window.Echo?.connector?.pusher) {
@@ -110,7 +108,7 @@ onMounted(() => {
                                 Current Ranking
                             </div>
                             <div class="mt-2 text-sm text-gray-500">
-                                Rating: {{ stats.rating }}
+                                Rating: 
                             </div>
                         </div>
                         <div class="mt-4">
@@ -120,13 +118,13 @@ onMounted(() => {
                             </Link>
                         </div>
                     </div>
-
-                    <!-- <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
+<!-- 
+                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                                 Recent Activity
                             </h3>
-                            <Link :href="route('history.index')"
+                            <Link :href="route('history')"
                                 class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
                             View All History
                             </Link>

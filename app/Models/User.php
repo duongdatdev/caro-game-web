@@ -55,4 +55,11 @@ class User extends Authenticatable
     {
         return $this->hasOne(PlayerStats::class);
     }
+
+    public function rooms()
+    {
+        return $this->belongsToMany(Room::class, 'room_players', 'user_id', 'room_id')
+            ->withPivot('is_ready')
+            ->withTimestamps();
+    }
 }
