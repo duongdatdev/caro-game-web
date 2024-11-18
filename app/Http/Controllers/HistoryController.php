@@ -3,22 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\Game;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use PgSql\Lob;
 
 class HistoryController extends Controller
 {
     public function index()
     {
         $games = Game::with(['room.players', 'winner'])
-            ->whereHas('room', function ($query) {
-                $query->whereHas('players', function ($q) {
-                    $q->where('user_id', Auth::id());
-                });
+            ->whereHas('room.players', function ($query) {
+                $query->where('user_id', Auth::id());
             })
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(function ($game) {
+            ->map(function ($game): array {
                 return [
                     'id' => $game->id,
                     'opponent' => $this->getOpponentName($game),
@@ -37,18 +37,18 @@ class HistoryController extends Controller
     private function getOpponentName($game)
     {
         try {
-            // Check if game and room exist
+            // Ensure the room and players are loaded
             if (!$game->room || !$game->room->players) {
-                return 'Unknown';
+                Log::error('Game room or players not loaded', ['game' => $game->id]);
+                return 'Unknown 1';
             }
 
-            $opponent = $game->room->players()
-                ->where('user_id', '!=', Auth::id())
-                ->first();
+            // Use the players collection to find the opponent
+            $opponent = $game->room->players->firstWhere('id', '!=', Auth::id());
 
-            return $opponent ? $opponent->name : 'Unknown';
+            return $opponent ? $opponent->name : 'Unknown 3';
         } catch (\Exception $e) {
-            return 'Unknown';
+            return 'Unknown 2';
         }
     }
 
