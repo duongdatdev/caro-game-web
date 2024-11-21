@@ -92,15 +92,18 @@ const makeMove = async (x: number, y: number) => {
     }
 };
 
+
+
 // Send chat message
 const sendMessage = async () => {
     if (!newMessage.value.trim()) return;
-
+    
     try {
         await axios.post(`/game/${props.room.id}/message`, {
-            message: newMessage.value
+            message: newMessage.value 
         });
-        newMessage.value = '';
+        //Clear the input field after sending the message
+        newMessage.value = ''; 
     } catch (error) {
         console.error('Failed to send message:', error);
     }
@@ -148,6 +151,9 @@ onMounted(() => {
             winner.value = getPlayerName(e.winnerId) || 'Opponent';
             showWinModal.value = true;
         })
+        .listen('.message.sent', (e: any) => {
+            messages.value.push(e.message);
+        })
         .listenForWhisper('typing', (e: any) => {
             console.log(e.name);
         });
@@ -177,8 +183,16 @@ onUnmounted(() => {
                 <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-50">
                     {{ room.name }}
                 </h2>
-                <div class="text-sm text-gray-600 dark:text-gray-400">
-                    {{ isYourTurn ? 'Your Turn' : "Opponent's Turn" }}
+                <div class="flex items-center gap-4">
+                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                        {{ isYourTurn ? 'Your Turn' : "Opponent's Turn" }}
+                    </div>
+                    <button 
+                        @click="leaveRoom"
+                        class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                    >
+                        Leave Room
+                    </button>
                 </div>
             </div>
         </template>
@@ -219,18 +233,18 @@ onUnmounted(() => {
                     <!-- Chat -->
                     <div class="w-full lg:w-1/4">
                         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 h-full flex flex-col">
-                            <h3 class="text-lg font-semibold mb-4">Chat</h3>
+                            <h3 class="text-lg font-semibold mb-4 dark:text-gray-500">Chat</h3>
                             <div class="flex-1 overflow-y-auto mb-4 space-y-2">
-                                <div v-for="message in messages" :key="message.id" class="text-sm">
+                                <div v-for="message in messages" :key="message.id" class="text-sm dark:text-gray-50">
                                     <span class="font-medium">
-                                        {{ getPlayerName(messages.user_id) }}:
+                                        {{ getPlayerName(message.user_id) }}:
                                     </span>
-                                    {{ messages.message }}
+                                    {{ message.message }}
                                 </div>
                             </div>
                             <div class="flex gap-2">
                                 <input v-model="newMessage" type="text"
-                                    class="flex-1 rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900"
+                                    class="flex-1 rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-50"
                                     placeholder="Type a message..." @keyup.enter="sendMessage()">
                                 <button @click="sendMessage()"
                                     class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">

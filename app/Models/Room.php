@@ -29,14 +29,18 @@ class Room extends Model
     }
 
     public function players()
-{
-    return $this->belongsToMany(User::class, 'room_players', 'room_id', 'user_id')
-        ->withPivot('is_ready')
-        ->withTimestamps();
-}
+    {
+        return $this->belongsToMany(User::class, 'room_players', 'room_id', 'user_id')
+            ->withPivot('is_ready')
+            ->withTimestamps();
+    }
 
     public function games(): HasMany
     {
         return $this->hasMany(Game::class);
+    }
+
+    public function messages(){
+        return $this->hasMany(Message::class);
     }
 }

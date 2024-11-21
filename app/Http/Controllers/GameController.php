@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageSent;
 use App\Models\Room;
 use App\Models\Game;
 use App\Events\MoveMade;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Pusher\Pusher;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class GameController extends Controller
 {
@@ -169,6 +171,32 @@ class GameController extends Controller
         }
 
         return response()->json(['status' => 'success']);
+    }
+
+    public function sendMessage(Request $request, Room $room)
+    {
+        $request->validate([
+            'message' => 'required|string|max:255'
+        ]);
+
+        $message = $room->messages()->create([
+            'user_id' => Auth::id(),
+            'message' => $request->message
+        ]);
+
+
+        broadcast(new MessageSent(
+            $room->id,
+            [
+                'id' => $message->id,
+                'user_id' => $message->user_id,
+                'message' => $message->message,
+                'created_at' => $message->created_at
+            ]
+        ));
+
+        Log::info('Message sent' . $message);
+        return response()->json(['status' => 'success', 'message' => '$message']);
     }
 
     private function checkWin($board, $x, $y, $playerId): bool
