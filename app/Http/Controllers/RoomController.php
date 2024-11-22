@@ -10,6 +10,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
 use App\Events\PlayerJoined;
 use Illuminate\Support\Facades\Log;
+use App\Events\PlayerLeft;
 
 class RoomController extends Controller
 {
@@ -103,4 +104,31 @@ class RoomController extends Controller
 
         return redirect()->route('game.show', ['room' => $room->id]);
     }
+
+    public function leave(Room $room)
+{
+    // Check if the player is part of the room
+    if (!$room->players()->where('user_id', Auth::id())->exists()) {
+        return back()->withErrors(['error' => 'You are not part of this room']);
+    }
+
+    // Remove the player from the room
+    $room->players()->detach(Auth::id());
+
+    // Broadcast the PlayerLeft event
+    $player = [
+        'id' => Auth::id(),
+        'name' => Auth::user()->name,
+    ];
+
+    broadcast(new PlayerLeft($room->id, $player));
+
+    // Optional: Update room status if necessary
+    if ($room->players()->count() < 2 && $room->status === 'playing') {
+        $room->update(['status' => 'waiting']);
+        // You might also want to notify the remaining player(s) about the status change
+    }
+
+    return redirect()->route('rooms.index')->with('success', 'You have left the room');
+}
 }

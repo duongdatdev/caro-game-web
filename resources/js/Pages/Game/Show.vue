@@ -97,15 +97,27 @@ const makeMove = async (x: number, y: number) => {
 // Send chat message
 const sendMessage = async () => {
     if (!newMessage.value.trim()) return;
-    
+
     try {
         await axios.post(`/game/${props.room.id}/message`, {
-            message: newMessage.value 
+            message: newMessage.value
         });
         //Clear the input field after sending the message
-        newMessage.value = ''; 
+        newMessage.value = '';
     } catch (error) {
         console.error('Failed to send message:', error);
+    }
+};
+
+//Leave the room
+const leaveRoom = async () => {
+    try {
+        // Call the server endpoint to leave room
+        await axios.post(`/rooms/${props.room.id}/leave`);
+        // Redirect to rooms list
+        window.location.href = route('rooms.index');
+    } catch (error) {
+        console.error('Failed to leave room:', error);
     }
 };
 
@@ -154,6 +166,17 @@ onMounted(() => {
         .listen('.message.sent', (e: any) => {
             messages.value.push(e.message);
         })
+        .listen('player.left', (e: any) => {
+            // Remove player from players list
+            players.value = players.value.filter(p => p.id !== e.player.id);
+
+            // If in middle of game, show win modal for remaining player
+            if (gameStatus.value === 'playing') {
+                gameStatus.value = 'finished';
+                winner.value = getPlayerName(props.currentPlayer) || 'You';
+                showWinModal.value = true;
+            }
+        })
         .listenForWhisper('typing', (e: any) => {
             console.log(e.name);
         });
@@ -187,10 +210,9 @@ onUnmounted(() => {
                     <div class="text-sm text-gray-600 dark:text-gray-400">
                         {{ isYourTurn ? 'Your Turn' : "Opponent's Turn" }}
                     </div>
-                    <button 
-                        @click="leaveRoom"
-                        class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                    >
+
+                    <!-- Leave Button -->
+                    <button @click="leaveRoom()" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
                         Leave Room
                     </button>
                 </div>
@@ -205,10 +227,10 @@ onUnmounted(() => {
                         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
                             <h3 class="text-lg font-semibold mb-4 dark:text-gray-50">Players</h3>
                             <div class="space-y-2">
-                                <div v-for="player in room.players" :key="player.id"
-                                    :class="{ 'text-green-600': player.pivot.is_ready,
+                                <div v-for="player in room.players" :key="player.id" :class="{
+                                    'text-green-600': player.pivot.is_ready,
                                     'text-gray-600 dark:text-gray-50': !player.pivot.is_ready
-                                    }">
+                                }">
                                     {{ player.name }}
                                     <span v-if="player.pivot.is_ready">(Ready)</span>
                                 </div>
@@ -228,6 +250,7 @@ onUnmounted(() => {
                             @move="makeMove" />
                     </div>
 
+                    <!-- Win Modal -->
                     <WinModal :show="showWinModal" :winner="winner" />
 
                     <!-- Chat -->

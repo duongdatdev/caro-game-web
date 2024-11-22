@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/rooms', [RoomController::class, 'index'])->name('rooms.index');
     Route::post('/rooms', [RoomController::class, 'store'])->name('rooms.store');
     Route::post('/rooms/{room}/join', [RoomController::class, 'join'])->name('rooms.join');
+    Route::post('/rooms/{room}/leave', [RoomController::class, 'leave'])->name('rooms.leave');
 
     //Game routes
     Route::get('/game/{room}', [GameController::class, 'show'])->name('game.show');
