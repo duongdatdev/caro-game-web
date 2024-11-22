@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import CreateRoomModal from '@/Pages/Room/CreateRoomModal.vue';
+import CreateRoomModal from '@/Components/Game/CreateRoomModal.vue';
 import { Link, Head } from '@inertiajs/vue3';
 import { onMounted,ref } from '@vue/runtime-core';
 import { defineProps } from '@vue/runtime-core';

@@ -19,10 +19,6 @@ class Room extends Model
         'status'
     ];
 
-    protected $hidden = [
-        'password'
-    ];
-
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

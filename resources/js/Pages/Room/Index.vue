@@ -1,16 +1,12 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import Modal from '@/Components/Modal.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from '@vue/runtime-core';
-import InputLabel from '@/Components/InputLabel.vue';
-import TextInput from '@/Components/TextInput.vue';
-import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { defineProps, computed } from '@vue/runtime-core';
+import PasswordModal from '@/Components/Game/PasswordModal.vue';
 
-import CreateRoomModal from './CreateRoomModal.vue';
+import CreateRoomModal from '../../Components/Game/CreateRoomModal.vue';
 
 type Room = {
     id: number;
@@ -27,7 +23,7 @@ type Room = {
 };
 
 const showCreateModal = ref(false);
-const showJoinModal = ref(false);
+const showPasswordModal = ref(false);
 const selectedRoom = ref<Room | null>(null);
 
 const props = defineProps<{
@@ -60,17 +56,28 @@ const joinForm = useForm({
 });
 
 const joinRoom = (room: Room) => {
-    selectedRoom.value = room;
     if (room.password) {
-        showJoinModal.value = true;
+        selectedRoom.value = room;
+        showPasswordModal.value = true;
     } else {
-        joinForm.post(route('rooms.join', room.id), {
-            onSuccess: () => {
-                showJoinModal.value = false;
-                joinForm.reset();
-            }
-        });
+        // Direct join for rooms without password
+        joinForm.post(route('rooms.join', room.id));
     }
+};
+
+const handlePasswordSubmit = (password: string) => {
+    // Set the password in the form before submitting
+    joinForm.password = password;
+
+    joinForm.post(route('rooms.join', selectedRoom.value?.id), {
+        onSuccess: () => {
+            showPasswordModal.value = false;
+            selectedRoom.value = null;
+            joinForm.reset();
+        },
+        onError: () => {
+        }
+    });
 };
 </script>
 
@@ -96,7 +103,6 @@ const joinRoom = (room: Room) => {
                 <option value="all">All Rooms</option>
             </select>
         </div>
-
         <!-- Room List -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div v-for="room in filteredRooms" :key="room.id"
@@ -122,37 +128,15 @@ const joinRoom = (room: Room) => {
                 <div class="mt-4 flex justify-end">
                     <button @click="joinRoom(room)" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                         :disabled="room.players.length >= 2 || room.status !== 'waiting'">
-                        {{ room.password ? 'Join (Password Required)' : 'Join' }}
+                        {{ room.password? 'Join (Password Required)' : 'Join' }}
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Join Room Modal -->
-        <Modal :show="showJoinModal" @close="showJoinModal = false">
-            <div class="p-6">
-                <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                    Join Room
-                </h2>
-                <form @submit.prevent="joinRoom(selectedRoom)" class="mt-6">
-                    <div>
-                        <InputLabel for="password" value="Room Password" />
-                        <TextInput id="password" v-model="joinForm.password" type="password" class="mt-1 block w-full"
-                            required />
-                        <InputError :message="joinForm.errors.password" class="mt-2" />
-                    </div>
+        <PasswordModal v-if="selectedRoom" :show="showPasswordModal" :room-id="selectedRoom.id"
+            :errors="joinForm.errors" @close="showPasswordModal = false" @submit="handlePasswordSubmit" />
 
-                    <div class="mt-6 flex justify-end">
-                        <SecondaryButton @click="showJoinModal = false" class="mr-3">
-                            Cancel
-                        </SecondaryButton>
-                        <PrimaryButton :disabled="joinForm.processing">
-                            Join
-                        </PrimaryButton>
-                    </div>
-                </form>
-            </div>
-        </Modal>
 
         <!-- Create Room Modal -->
         <CreateRoomModal :show="showCreateModal" @close="showCreateModal = false" />

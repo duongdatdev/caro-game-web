@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
 use App\Events\PlayerJoined;
+use Illuminate\Support\Facades\Log;
 
 class RoomController extends Controller
 {
@@ -22,6 +23,8 @@ class RoomController extends Controller
         $rooms = Room::with('creator', 'players')
             ->orderBy('created_at', 'desc')
             ->get();
+
+        Log::info('Rooms: ' . $rooms);
 
         return Inertia::render('Room/Index', [
             'rooms' => $rooms
