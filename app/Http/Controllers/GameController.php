@@ -79,7 +79,7 @@ class GameController extends Controller
         ]);
 
         // Check if all players are ready
-        $allPlayersReady = $room->players()->where('is_ready', true)->count() === $room->players()->count();
+        $allPlayersReady = ($room->players()->where('is_ready', true)->count() === $room->players()->count()) && $room->players()->count() === 2;
         if ($allPlayersReady) {
             $room->update(['status' => 'playing']);
         }
