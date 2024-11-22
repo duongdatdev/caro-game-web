@@ -6,6 +6,7 @@ import { ref, onMounted, onUnmounted } from '@vue/runtime-core';
 import axios from 'axios';
 import { defineProps } from '@vue/runtime-core';
 import WinModal from '@/Components/Game/WinModal.vue';
+import Toast from '@/Components/Toast.vue';
 
 const props = defineProps<{
     room: {
@@ -43,6 +44,11 @@ const players = ref(props.room.players);
 
 const showWinModal = ref(false);
 const winner = ref('');
+
+const showToast = ref(false);
+const toastMessage = ref('');
+const toastType = ref<'error' | 'success' | 'info'>('info');
+
 
 // Toggle player ready status
 const toggleReady = async () => {
@@ -128,7 +134,10 @@ onMounted(() => {
             // Add new player to players list
             if (players.value.some((p: { id: number }) => p.id === e.player.id)) return;
             players.value.push(e.player);
-            console.log('New player joined:', e.player.name);
+            
+            toastMessage.value = `${e.player.name} has join the room`;
+            toastType.value = 'info';
+            showToast.value = true;
         })
         .listen('.move.made', (e: any) => {
             // Add new move to moves list
@@ -178,6 +187,11 @@ onMounted(() => {
                 winner.value = getPlayerName(props.currentPlayer) || 'You';
                 showWinModal.value = true;
             }
+
+            // Show toast notification
+            toastMessage.value = `${e.player.name} has left the room`;
+            toastType.value = 'info';
+            showToast.value = true;
         })
         .listenForWhisper('typing', (e: any) => {
             console.log(e.name);
@@ -254,6 +268,7 @@ onUnmounted(() => {
 
                     <!-- Win Modal -->
                     <WinModal :show="showWinModal" :winner="winner" />
+                    <Toast v-if="showToast" :message="toastMessage" :type="toastType" @close="showToast = false" />
 
                     <!-- Chat -->
                     <div class="w-full lg:w-1/4">
