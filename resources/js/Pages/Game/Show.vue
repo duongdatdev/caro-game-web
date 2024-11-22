@@ -142,7 +142,7 @@ onMounted(() => {
             isYourTurn.value = e.move.user_id !== props.currentPlayer;
         })
         .listen('.player.ready', (e: any) => {
-            console.log('Ready event received:', e);
+            console.log('Players:', players.value);
 
             // Update player ready status
             const playerIndex = players.value.findIndex(p => p.id === e.playerId);
@@ -166,9 +166,11 @@ onMounted(() => {
         .listen('.message.sent', (e: any) => {
             messages.value.push(e.message);
         })
-        .listen('player.left', (e: any) => {
+        .listen('.player.left', (e: any) => {
             // Remove player from players list
-            players.value = players.value.filter(p => p.id !== e.player.id);
+            const playerIndex = players.value.findIndex(p => p.id === e.player.id);
+            players.value.splice(playerIndex, 1);
+            console.log('Player left:', e.player.name);
 
             // If in middle of game, show win modal for remaining player
             if (gameStatus.value === 'playing') {
