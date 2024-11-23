@@ -29,6 +29,7 @@ class DashboardController extends Controller
         ->whereHas('room.players', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })
+        ->where('status', 'finished') 
         ->orderBy('created_at', 'desc')
         ->take(5)
         ->get()

@@ -6,6 +6,7 @@ use App\Http\Controllers\RoomController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\HistoryController;
+use App\Http\Controllers\Admin\AdminDashboardController;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -24,8 +25,8 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
-->middleware(['auth','verified'])
-->name('dashboard');
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     //Profile routes
@@ -43,12 +44,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/game/{room}', [GameController::class, 'show'])->name('game.show');
     Route::post('/game/{room}/move', [GameController::class, 'makeMove'])->name('game.move');
     Route::post('/game/{room}/ready', [GameController::class, 'toggleReady'])->name('game.ready');
-    Route::post('/game/{room}/message',[GameController::class, 'sendMessage'])->name('game.message');
+    Route::post('/game/{room}/message', [GameController::class, 'sendMessage'])->name('game.message');
 
     //LeaderBoard routes
-    Route::get('/leaderboard', [LeaderboardController::class, 'index'])
-        ->middleware(['auth', 'verified'])
-        ->name('leaderboard');
+    Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
 
     // Game History route
     Route::get('/history', [HistoryController::class, 'index'])->name('history');
@@ -57,9 +56,5 @@ Route::middleware('auth')->group(function () {
     Route::get('/trigger-event', [TestController::class, 'triggerEvent']);
     Route::post('/send-test-message', [TestController::class, 'sendTestMessage']);
 });
-
-
-
-
 
 require __DIR__ . '/auth.php';

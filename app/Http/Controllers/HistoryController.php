@@ -16,6 +16,7 @@ class HistoryController extends Controller
             ->whereHas('room.players', function ($query) {
                 $query->where('user_id', Auth::id());
             })
+            ->where('status', 'finished')
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($game): array {
