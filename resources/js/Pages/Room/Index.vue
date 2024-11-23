@@ -5,7 +5,7 @@ import { ref } from '@vue/runtime-core';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { defineProps, computed } from '@vue/runtime-core';
 import PasswordModal from '@/Components/Game/PasswordModal.vue';
-
+import Toast from '@/Components/Toast.vue';
 import CreateRoomModal from '../../Components/Game/CreateRoomModal.vue';
 
 type Room = {
@@ -55,27 +55,52 @@ const joinForm = useForm({
     password: '',
 });
 
+const toastMessage = ref('');
+const toastType = ref<'error' | 'success' | 'info'>('error');
+const showToast = ref(false);
+
 const joinRoom = (room: Room) => {
     if (room.password) {
         selectedRoom.value = room;
         showPasswordModal.value = true;
     } else {
-        // Direct join for rooms without password
-        joinForm.post(route('rooms.join', room.id));
+        joinForm.post(route('rooms.join', room.id), {
+            onSuccess: () => {
+                // Redirect on successful join
+                window.location.href = route('game.show', room.id);
+            },
+            onError: (errors) => {
+                if (errors.general) {
+                    toastMessage.value = errors.general;
+                } else if (errors.password) {
+                    toastMessage.value = errors.password;
+                } else {
+                    toastMessage.value = 'Failed to join room';
+                }
+                toastType.value = 'error';
+                showToast.value = true;
+            }
+        });
     }
 };
 
 const handlePasswordSubmit = (password: string) => {
-    // Set the password in the form before submitting
     joinForm.password = password;
-
     joinForm.post(route('rooms.join', selectedRoom.value?.id), {
         onSuccess: () => {
-            showPasswordModal.value = false;
-            selectedRoom.value = null;
-            joinForm.reset();
+            // Redirect on successful join
+            window.location.href = route('game.show', selectedRoom.value?.id);
         },
-        onError: () => {
+        onError: (errors) => {
+            if (errors.general) {
+                toastMessage.value = errors.general;
+            } else if (errors.password) {
+                toastMessage.value = errors.password;
+            } else {
+                toastMessage.value = 'Invalid password';
+            }
+            toastType.value = 'error';
+            showToast.value = true;
         }
     });
 };
@@ -128,7 +153,7 @@ const handlePasswordSubmit = (password: string) => {
                 <div class="mt-4 flex justify-end">
                     <button @click="joinRoom(room)" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                         :disabled="room.players.length >= 2 || room.status !== 'waiting'">
-                        {{ room.password? 'Join (Password Required)' : 'Join' }}
+                        {{ room.password ? 'Join (Password Required)' : 'Join' }}
                     </button>
                 </div>
             </div>
@@ -140,5 +165,6 @@ const handlePasswordSubmit = (password: string) => {
 
         <!-- Create Room Modal -->
         <CreateRoomModal :show="showCreateModal" @close="showCreateModal = false" />
+        <Toast v-if="showToast" :message="toastMessage" :type="toastType" @close="showToast = false" />
     </AuthenticatedLayout>
 </template>

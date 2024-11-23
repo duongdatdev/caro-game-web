@@ -72,15 +72,13 @@ class RoomController extends Controller
     public function join(Room $room, Request $request)
     {
         if ($room->players()->count() >= 2) {
-            return back()->withErrors(['error' => 'Room is full']);
+            return back()->withErrors(['general' => 'Room is full']);
         }
-
-        // Check if player is already in the room
+    
         if ($room->players()->where('user_id', Auth::id())->exists()) {
-            return back()->withErrors(['error' => 'You are already in this room']);
+            return back()->withErrors(['general' => 'You are already in this room']);
         }
-
-        // Check password if room has one
+    
         if ($room->password) {
             if (!$request->password || !Hash::check($request->password, $room->password)) {
                 return back()->withErrors(['password' => 'Invalid password']);
@@ -106,29 +104,29 @@ class RoomController extends Controller
     }
 
     public function leave(Room $room)
-{
-    // Check if the player is part of the room
-    if (!$room->players()->where('user_id', Auth::id())->exists()) {
-        return back()->withErrors(['error' => 'You are not part of this room']);
+    {
+        // Check if the player is part of the room
+        if (!$room->players()->where('user_id', Auth::id())->exists()) {
+            return back()->withErrors(['error' => 'You are not part of this room']);
+        }
+
+        // Remove the player from the room
+        $room->players()->detach(Auth::id());
+
+        // Broadcast the PlayerLeft event
+        $player = [
+            'id' => Auth::id(),
+            'name' => Auth::user()->name,
+        ];
+
+        broadcast(new PlayerLeft($room->id, $player));
+
+        //Update room status
+        if ($room->players()->count() < 2 && $room->status === 'playing') {
+            $room->update(['status' => 'waiting']);
+            // You might also want to notify the remaining player(s) about the status change
+        }
+
+        return redirect()->route('rooms.index')->with('success', 'You have left the room');
     }
-
-    // Remove the player from the room
-    $room->players()->detach(Auth::id());
-
-    // Broadcast the PlayerLeft event
-    $player = [
-        'id' => Auth::id(),
-        'name' => Auth::user()->name,
-    ];
-
-    broadcast(new PlayerLeft($room->id, $player));
-
-    // Optional: Update room status if necessary
-    if ($room->players()->count() < 2 && $room->status === 'playing') {
-        $room->update(['status' => 'waiting']);
-        // You might also want to notify the remaining player(s) about the status change
-    }
-
-    return redirect()->route('rooms.index')->with('success', 'You have left the room');
-}
 }
