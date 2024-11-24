@@ -181,13 +181,6 @@ onMounted(() => {
             players.value.splice(playerIndex, 1);
             console.log('Player left:', e.player.name);
 
-            // If in middle of game, show win modal for remaining player
-            if (gameStatus.value === 'playing') {
-                gameStatus.value = 'finished';
-                winner.value = getPlayerName(props.currentPlayer) || 'You';
-                showWinModal.value = true;
-            }
-
             // Show toast notification
             toastMessage.value = `${e.player.name} has left the room`;
             toastType.value = 'info';
@@ -204,6 +197,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+    leaveRoom();
     // Clean up Echo subscription
     window.Echo?.private(`room.${props.room.id}`).stopListening('.move.made');
     window.Echo?.private(`room.${props.room.id}`).stopListening('.player.ready');

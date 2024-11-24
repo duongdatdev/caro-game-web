@@ -25,16 +25,16 @@ const selectedTimeframe = ref('All Time');
     <Head title="Leaderboard" />
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex justify-between items-center">
+           <div class="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">
                 <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
                     Leaderboard
                 </h2>
-                <div class="flex space-x-2">
+                <div class="flex flex-wrap gap-2">
                     <button v-for="timeframe in timeframes" 
                             :key="timeframe"
                             @click="selectedTimeframe = timeframe"
                             :class="[
-                                'px-3 py-1 rounded-lg text-sm transition',
+                                'px-3 py-1 rounded-lg text-sm transition flex-grow sm:flex-grow-0',
                                 selectedTimeframe === timeframe 
                                     ? 'bg-indigo-600 text-white' 
                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
@@ -71,45 +71,50 @@ const selectedTimeframe = ref('All Time');
 
                         <!-- Rankings Table -->
                         <div class="overflow-x-auto">
-                            <table class="min-w-full">
-                                <thead>
-                                    <tr class="text-left text-gray-500 dark:text-gray-400">
-                                        <th class="pb-4 font-medium">Rank</th>
-                                        <th class="pb-4 font-medium">Player</th>
-                                        <th class="pb-4 font-medium">Rating</th>
-                                        <th class="pb-4 font-medium">Wins</th>
-                                        <th class="pb-4 font-medium">Losses</th>
-                                        <th class="pb-4 font-medium">Win Rate</th>
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-700/50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Rank</th>
+                                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Player</th>
+                                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Rating</th>
+                                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Wins</th>
+                                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Losses</th>
+                                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Win Rate</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                    <tr v-for="player in players" 
-                                        :key="player.rank"
+                                    <tr v-for="player in players" :key="player.id" 
                                         :class="[
-                                            'hover:bg-gray-50 dark:hover:bg-gray-700 transition',
+                                            'hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 ease-in-out',
                                             player.isCurrentUser ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''
                                         ]">
-                                        <td class="py-4">
-                                            <span class="font-medium">#{{ player.rank }}</span>
+                                        <td class="whitespace-nowrap px-6 py-4">
+                                            <span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700">
+                                                <span class="text-sm font-medium">#{{ player.rank }}</span>
+                                            </span>
                                         </td>
-                                        <td class="py-4">
-                                            <span class="font-medium text-gray-900 dark:text-gray-100">
+                                        <td class="whitespace-nowrap px-6 py-4">
+                                            <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                 {{ player.name }}
                                             </span>
                                         </td>
-                                        <td class="py-4">
-                                            <span class="font-medium text-indigo-600 dark:text-indigo-400">
+                                        <td class="whitespace-nowrap px-6 py-4">
+                                            <span class="text-sm font-medium text-indigo-600 dark:text-indigo-400">
                                                 {{ player.rating }}
                                             </span>
                                         </td>
-                                        <td class="py-4 text-green-600 dark:text-green-400">
-                                            {{ player.wins }}
+                                        <td class="whitespace-nowrap px-6 py-4">
+                                            <span class="inline-flex items-center rounded-full bg-green-50 dark:bg-green-900/20 px-2 py-1">
+                                                <span class="text-sm font-medium text-green-600 dark:text-green-400">{{ player.wins }}</span>
+                                            </span>
                                         </td>
-                                        <td class="py-4 text-red-600 dark:text-red-400">
-                                            {{ player.losses }}
+                                        <td class="whitespace-nowrap px-6 py-4">
+                                            <span class="inline-flex items-center rounded-full bg-red-50 dark:bg-red-900/20 px-2 py-1">
+                                                <span class="text-sm font-medium text-red-600 dark:text-red-400">{{ player.losses }}</span>
+                                            </span>
                                         </td>
-                                        <td class="py-4">
-                                            {{ player.winRate }}%
+                                        <td class="whitespace-nowrap px-6 py-4">
+                                            <span class="text-sm font-medium">{{ player.winRate }}%</span>
                                         </td>
                                     </tr>
                                 </tbody>

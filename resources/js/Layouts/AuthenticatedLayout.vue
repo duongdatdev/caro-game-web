@@ -79,7 +79,6 @@ const showingNavigationDropdown = ref(false);
                                 </Dropdown>
                             </div>
                         </div>
-
                         <!-- Hamburger -->
                         <div class="-me-2 flex items-center sm:hidden">
                             <button @click="
@@ -115,6 +114,19 @@ const showingNavigationDropdown = ref(false);
                         <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
                             Dashboard
                         </ResponsiveNavLink>
+
+                        <ResponsiveNavLink :href="route('rooms.index')" :active="route().current('rooms.index')">
+                            Game Rooms
+                        </ResponsiveNavLink>
+
+                        <ResponsiveNavLink :href="route('leaderboard')" :active="route().current('leaderboard')">
+                            Leaderboard
+                        </ResponsiveNavLink>
+
+                        <ResponsiveNavLink :href="route('history')" :active="route().current('history')">
+                            History
+                        </ResponsiveNavLink>
+                        <DarkModeToggle class="items-center" />
                     </div>
 
                     <!-- Responsive Settings Options -->
@@ -132,12 +144,14 @@ const showingNavigationDropdown = ref(false);
                             <ResponsiveNavLink :href="route('profile.edit')">
                                 Profile
                             </ResponsiveNavLink>
+
                             <ResponsiveNavLink :href="route('logout')" method="post" as="button">
                                 Log Out
                             </ResponsiveNavLink>
                         </div>
                     </div>
                 </div>
+
             </nav>
 
             <!-- Page Heading -->

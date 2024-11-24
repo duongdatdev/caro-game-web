@@ -16,6 +16,7 @@ const filteredGames = computed(() => {
 </script>
 
 <template>
+
     <Head title="Game History" />
     <AuthenticatedLayout>
         <template #header>
@@ -23,10 +24,8 @@ const filteredGames = computed(() => {
                 <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
                     Game History
                 </h2>
-                <select 
-                    v-model="filter"
-                    class="rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-sm"
-                >
+                <select v-model="filter"
+                    class="rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-sm">
                     <option value="all">All Games</option>
                     <option value="win">Wins</option>
                     <option value="loss">Losses</option>
@@ -63,14 +62,13 @@ const filteredGames = computed(() => {
                             <thead>
                                 <tr class="text-left text-gray-500 dark:text-gray-400">
                                     <th class="pb-4">Date</th>
-                                    <th class="pb-4">Opponent</th>
+                                    <th class="pb-4 hidden sm:table-cell">Opponent</th>
                                     <th class="pb-4">Result</th>
-                                    <th class="pb-4">Rating Change</th>
+                                    <th class="pb-4 hidden sm:table-cell">Rating Change</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                <tr v-for="game in filteredGames" 
-                                    :key="game.id"
+                                <tr v-for="game in filteredGames" :key="game.id"
                                     class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                     <td class="py-4">{{ game.played_at }}</td>
                                     <td class="py-4">{{ game.opponent }}</td>
