@@ -11,6 +11,7 @@
         "laravel/reverb": "^1.4",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+        "open-admin-ext/config": "^1.0",
         "open-admin-ext/helpers": "^1.0",
         "open-admin-ext/log-viewer": "^1.0",
         "open-admin-ext/phpinfo": "^1.0",
