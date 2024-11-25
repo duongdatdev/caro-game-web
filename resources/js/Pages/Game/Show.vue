@@ -118,12 +118,31 @@ const sendMessage = async () => {
 //Leave the room
 const leaveRoom = async () => {
     try {
+        // Show confirmation if game is in progress
+        if (gameStatus.value === 'playing') {
+            const confirmed = await new Promise((resolve) => {
+                if (confirm('Leaving the game will count as a loss. Are you sure?')) {
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+            });
+
+            if (!confirmed) {
+                return;
+            }
+        }
+
         // Call the server endpoint to leave room
         await axios.post(`/rooms/${props.room.id}/leave`);
+        
         // Redirect to rooms list
         window.location.href = route('rooms.index');
     } catch (error) {
         console.error('Failed to leave room:', error);
+        toastMessage.value = 'Failed to leave room';
+        toastType.value = 'error';
+        showToast.value = true;
     }
 };
 
