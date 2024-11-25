@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Game;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use PgSql\Lob;
@@ -12,14 +13,24 @@ class HistoryController extends Controller
 {
     public function index()
     {
+        DB::enableQueryLog();
         $games = Game::with(['room.players', 'winner'])
             ->whereHas('room.players', function ($query) {
                 $query->where('user_id', Auth::id());
             })
-            ->where('status', 'finished')
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(function ($game): array {
+            ->map(function ($game) {
+                Log::debug('Game Details', [
+                    'game_id' => $game->id,
+                    'player_id' => Auth::id(),
+                    'player_id_check' => $game->room->players->first()->id,
+                    'status' => $game->status,
+                    'winner_id' => $game->winner_id,
+                    'room_id' => $game->room_id,
+                    'board_state' => $game->board_state,
+                    'created_at' => $game->created_at
+                ]);
                 return [
                     'id' => $game->id,
                     'opponent' => $this->getOpponentName($game),
@@ -29,6 +40,7 @@ class HistoryController extends Controller
                 ];
             });
 
+        Log::debug('Query Log', ['queries' => DB::getQueryLog()]);
         return Inertia::render('History/Index', [
             'games' => $games,
             'stats' => $this->getPlayerStats()
@@ -55,6 +67,7 @@ class HistoryController extends Controller
 
     private function getGameResult($game)
     {
+        Log::debug('Game result', ['game' => $game->id, 'winner' => $game->winner_id, 'player' => Auth::id()]);
         if ($game->winner_id === Auth::id()) return 'win';
         if ($game->winner_id) return 'loss';
         return 'draw';
