@@ -42,119 +42,103 @@ onMounted(() => {
 </script>
 
 <template>
-
-    <Head title="Game Dashboard" />
-
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex justify-between items-center">
-                <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200 animate-fade-in">
                     Game Dashboard
                 </h2>
-                <div class="flex items-center space-x-2">
-                    <span class="text-sm text-gray-600 dark:text-gray-400">
-                        Welcome, {{ $page.props.auth.user.name }}
+                <div class="flex items-center space-x-4 animate-fade-in">
+                    <span class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Welcome back, {{ $page.props.auth.user.name }}! 👋
                     </span>
                 </div>
             </div>
         </template>
 
         <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-                <!-- Game Actions -->
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
-                        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
+            <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
+                <!-- Quick Actions Card -->
+                <div class="grid gap-6 md:grid-cols-2 animate-fade-in-up">
+                    <div class="transform overflow-hidden rounded-xl bg-white p-6 shadow-lg transition-all duration-300 hover:shadow-xl dark:bg-gray-800">
+                        <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
                             Quick Actions
                         </h3>
                         <div class="grid grid-cols-2 gap-4">
-                            <PrimaryButton @click="showCreateModal = true">
-                                Create Room
-                            </PrimaryButton>
+                            <button @click="showCreateModal = true"
+                                class="group flex items-center justify-center space-x-2 rounded-lg bg-indigo-600 px-4 py-2 text-white transition-all duration-300 hover:bg-indigo-700">
+                                <span>Create Room</span>
+                                <span class="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                            </button>
+                            <Link :href="route('rooms.index')"
+                                class="flex items-center justify-center space-x-2 rounded-lg border border-gray-300 px-4 py-2 text-gray-700 transition-all duration-300 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+                                <span>Join Room</span>
+                            </Link>
                         </div>
                     </div>
 
                     <!-- Player Stats -->
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
-                        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
+                    <div class="transform overflow-hidden rounded-xl bg-white p-6 shadow-lg transition-all duration-300 hover:shadow-xl dark:bg-gray-800">
+                        <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
                             Your Statistics
                         </h3>
                         <div class="grid grid-cols-3 gap-4">
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-green-600">{{ stats.wins }}</div>
+                            <div class="transform rounded-lg bg-green-50 p-4 text-center transition-all duration-300 hover:-translate-y-1 dark:bg-green-900/20">
+                                <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ stats.wins }}</div>
                                 <div class="text-sm text-gray-600 dark:text-gray-400">Wins</div>
                             </div>
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-red-600">{{ stats.losses }}</div>
+                            <div class="transform rounded-lg bg-red-50 p-4 text-center transition-all duration-300 hover:-translate-y-1 dark:bg-red-900/20">
+                                <div class="text-2xl font-bold text-red-600 dark:text-red-400">{{ stats.losses }}</div>
                                 <div class="text-sm text-gray-600 dark:text-gray-400">Losses</div>
                             </div>
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-yellow-600">{{ stats.draws }}</div>
+                            <div class="transform rounded-lg bg-yellow-50 p-4 text-center transition-all duration-300 hover:-translate-y-1 dark:bg-yellow-900/20">
+                                <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ stats.draws }}</div>
                                 <div class="text-sm text-gray-600 dark:text-gray-400">Draws</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Additional Features -->
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
-                        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
-                            Rankings
-                        </h3>
-                        <div class="text-center p-4">
-                            <div class="text-3xl font-bold text-indigo-600 mb-2">#{{ stats.rank }}</div>
-                            <div class="text-lg text-gray-600 dark:text-gray-400">
-                                Current Ranking
-                            </div>
-                            <div class="mt-2 text-sm text-gray-500">
-                                Rating:
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <Link :href="route('leaderboard')"
-                                class="w-full flex justify-center py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition">
-                            View Leaderboard
-                            </Link>
-                        </div>
-                    </div>
-
-                    <!-- Recent Activity Section -->
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
-                        <div class="flex justify-between items-center mb-4">
+                <!-- Recent Activity -->
+                <div class="animate-fade-in-up" style="animation-delay: 0.2s">
+                    <div class="overflow-hidden rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
+                        <div class="mb-4 flex items-center justify-between">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                                 Recent Activity
                             </h3>
                             <Link :href="route('history')"
-                                class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
-                            View All
+                                class="text-sm text-indigo-600 transition-colors hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                View All
                             </Link>
                         </div>
-
-                        <div class="space-y-2">
-                            <div v-if="recentActivities && recentActivities.length > 0">
+                        <div class="space-y-4">
+                            <div v-if="recentActivities?.length > 0">
                                 <div v-for="(activity, index) in recentActivities" :key="index"
-                                    class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition">
-                                    <div class="flex items-center gap-3">
-                                        <span :class="{
-                                            'text-green-600 dark:text-green-400': activity.type === 'win',
-                                            'text-red-600 dark:text-red-400': activity.type === 'loss',
-                                            'text-yellow-600 dark:text-yellow-400': activity.type === 'draw'
-                                        }">
-                                            {{ activity.type === 'win' ? '🏆' : activity.type === 'loss' ? '❌' : '🤝' }}
-                                        </span>
-                                        <span class="text-gray-700 dark:text-gray-300">{{ activity.description }}</span>
-                                        <span v-if="activity.rating_change" :class="{
-                                            'text-green-600 dark:text-green-400': activity.rating_change > 0,
-                                            'text-red-600 dark:text-red-400': activity.rating_change < 0
-                                        }">
-                                            ({{ activity.rating_change > 0 ? '+' : '' }}{{ activity.rating_change }})
-                                        </span>
+                                    class="transform rounded-lg bg-gray-50 p-4 transition-all duration-300 hover:bg-gray-100 dark:bg-gray-700/50 dark:hover:bg-gray-700">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-3">
+                                            <span class="text-2xl">
+                                                {{ activity.type === 'win' ? '🏆' : activity.type === 'loss' ? '❌' : '🤝' }}
+                                            </span>
+                                            <span class="text-gray-700 dark:text-gray-300">{{ activity.description }}</span>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <span v-if="activity.rating_change" 
+                                                :class="{
+                                                    'text-green-600 dark:text-green-400': activity.rating_change > 0,
+                                                    'text-red-600 dark:text-red-400': activity.rating_change < 0
+                                                }"
+                                                class="font-medium">
+                                                {{ activity.rating_change > 0 ? '+' : '' }}{{ activity.rating_change }}
+                                            </span>
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">
+                                                {{ activity.time }}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <span class="text-sm text-gray-500 dark:text-gray-400">{{ activity.time }}</span>
                                 </div>
                             </div>
-                            <div v-else class="text-center py-4 text-gray-500 dark:text-gray-400">
+                            <div v-else class="py-8 text-center text-gray-500 dark:text-gray-400">
                                 No recent activities
                             </div>
                         </div>
@@ -163,7 +147,55 @@ onMounted(() => {
             </div>
         </div>
 
-        <!-- Create Room Modal -->
         <CreateRoomModal :show="showCreateModal" @close="showCreateModal = false" />
     </AuthenticatedLayout>
 </template>
+
+<style scoped>
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.5s ease-out;
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Add smooth transitions */
+.transition-all {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+}
+
+/* Hover effects for cards */
+.hover\:shadow-xl:hover {
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Dark mode improvements */
+.dark .dark\:bg-gray-800 {
+    background-color: rgba(31, 41, 55, 0.95);
+}
+</style>

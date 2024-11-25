@@ -31,14 +31,8 @@ class GameController extends Controller
             $query->latest()->first();
         }]);
 
-        // Get current game or create new one
-        $game = $room->games()->firstOrCreate(
-            ['status' => 'playing'],
-            [
-                'board_state' => array_fill(0, 15, array_fill(0, 15, null)),
-                'status' => 'playing'
-            ]
-        );
+        $game = $room->games()->where('status', 'playing')->first()
+            ?? Game::initializeGame($room);
 
         return Inertia::render('Game/Show', [
             'room' => [
@@ -57,7 +51,7 @@ class GameController extends Controller
                 }),
                 'moves' => $game->moves ?? []
             ],
-            'currentPlayer' => Auth::id(),
+            'currentPlayer' => $game->current_player, // Use stored current player
             'game' => [
                 'id' => $game->id,
                 'status' => $game->status,
@@ -127,6 +121,8 @@ class GameController extends Controller
         ]);
 
         $game->moves()->save($move);
+
+        $game->switchTurn();
 
         // Update game state
         $boardState = $game->board_state ?? array_fill(0, 15, array_fill(0, 15, null));

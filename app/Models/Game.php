@@ -14,7 +14,8 @@ class Game extends Model
         'room_id',
         'status',
         'winner_id',
-        'board_state'
+        'board_state',
+        'current_player'
     ];
 
     protected $casts = [
@@ -34,6 +35,40 @@ class Game extends Model
     public function moves()
     {
         return $this->hasMany(Move::class);
+    }
+
+    public function currentPlayer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'current_player');
+    }
+
+    /*
+    * Helper method to initialize the game with creator as first player
+    */
+    public static function initializeGame(Room $room): self
+    {
+        return self::create([
+            'room_id' => $room->id,
+            'status' => 'playing',
+            'board_state' => array_fill(0, 15, array_fill(0, 15, null)),
+            'current_player' => $room->created_by // Set room creator as first player
+        ]);
+    }
+
+    /*
+    * Helper method to switch turns
+    */
+    public function switchTurn(): void
+    {
+        // Get the other player in the room
+        $nextPlayer = $this->room->players()
+            ->where('user_id', '!=', $this->current_player)
+            ->first();
+
+        if ($nextPlayer) {
+            $this->current_player = $nextPlayer->id;
+            $this->save();
+        }
     }
 
     public function players()

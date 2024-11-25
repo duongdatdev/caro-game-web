@@ -117,7 +117,7 @@ const sendMessage = async () => {
 
 //Leave the room
 const leaveRoom = async () => {
-    try {
+     try {
         // Show confirmation if game is in progress
         if (gameStatus.value === 'playing') {
             const confirmed = await new Promise((resolve) => {

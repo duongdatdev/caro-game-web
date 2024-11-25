@@ -76,11 +76,11 @@ class RoomController extends Controller
         if ($room->players()->count() >= 2) {
             return back()->withErrors(['general' => 'Room is full']);
         }
-    
+
         if ($room->players()->where('user_id', Auth::id())->exists()) {
             return back()->withErrors(['general' => 'You are already in this room']);
         }
-    
+
         if ($room->password) {
             if (!$request->password || !Hash::check($request->password, $room->password)) {
                 return back()->withErrors(['password' => 'Invalid password']);
@@ -108,52 +108,60 @@ class RoomController extends Controller
     public function leave(Room $room)
     {
         // Check if player is in room
-    if (!$room->players()->where('user_id', Auth::id())->exists()) {
-        return back()->withErrors(['error' => 'You are not part of this room']);
-    }
-
-    // Handle ongoing game
-    if ($room->status === 'playing') {
-        $game = $room->games()->where('status', 'playing')->first();
-        if ($game) {
-            // Find opponent
-            $opponent = $room->players->where('id', '!=', Auth::id())->first();
-            
-            // Update game status
-            $game->update([
-                'status' => 'finished',
-                'winner_id' => $opponent ? $opponent->id : null
-            ]);
-
-            // Update player stats if opponent exists
-            if ($opponent) {
-                // Update winner (opponent) stats
-                $winnerStats = PlayerStats::firstOrCreate(['user_id' => $opponent->id]);
-                $winnerStats->increment('wins');
-                $winnerStats->updateRating(true);
-
-                // Update loser (leaving player) stats
-                $loserStats = PlayerStats::firstOrCreate(['user_id' => Auth::id()]);
-                $loserStats->increment('losses');
-                $loserStats->updateRating(false);
-
-                // Broadcast game finished event
-                broadcast(new GameFinished($room->id, $opponent->id));
-            }
+        if (!$room->players()->where('user_id', Auth::id())->exists()) {
+            return back()->withErrors(['error' => 'You are not part of this room']);
         }
-    }
 
-    // Remove player from room
-    $room->players()->detach(Auth::id());
+        // Handle ongoing game
+        if ($room->status === 'playing') {
+            $game = $room->games()->where('status', 'playing')->first();
+            if ($game) {
+                // Find opponent
+                $opponent = $room->players->where('id', '!=', Auth::id())->first();
 
-    // Broadcast player left
-    $player = [
-        'id' => Auth::id(),
-        'name' => Auth::user()->name,
-    ];
-    broadcast(new PlayerLeft($room->id, $player));
+                // Update game status
+                $game->update([
+                    'status' => 'finished',
+                    'winner_id' => $opponent ? $opponent->id : null
+                ]);
 
-    return redirect()->route('rooms.index')
-        ->with('success', 'You have left the room');
+                $room->update(['status' => 'finished']);
+
+                $winner = $opponent;
+                $loser = Auth::user();
+
+                // Update player stats if opponent exists
+                if ($opponent) {
+                    // Update winner (opponent) stats
+                    $winnerStats = PlayerStats::firstOrCreate(['user_id' => $opponent->id]);
+                    $winnerStats->increment('wins');
+                    $winnerStats->updateRating(true);
+
+                    // Update loser (leaving player) stats
+                    $loserStats = PlayerStats::firstOrCreate(['user_id' => Auth::id()]);
+                    $loserStats->increment('losses');
+                    $loserStats->updateRating(false);
+
+                    // Broadcast game finished event
+                    broadcast(new GameFinished($room->id, $opponent->id));
+                }
+            }
+            return redirect()->route('rooms.index')
+                ->with('success', 'You have left the room and forfeited the game');
+
+        }
+
+        // Remove player from room
+        $room->players()->detach(Auth::id());
+
+        // Broadcast player left
+        $player = [
+            'id' => Auth::id(),
+            'name' => Auth::user()->name,
+        ];
+        broadcast(new PlayerLeft($room->id, $player));
+
+        return redirect()->route('rooms.index')
+            ->with('success', 'You have left the room');
     }
 }
