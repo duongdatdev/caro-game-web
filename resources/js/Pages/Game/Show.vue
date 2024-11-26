@@ -28,6 +28,7 @@ const props = defineProps<{
         }>;
     };
     currentPlayer: number;
+    userId: number;
 }>();
 
 const getPlayerName = (userId: number): string | undefined => {
@@ -231,17 +232,20 @@ onUnmounted(() => {
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex justify-between items-center">
-                <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-50">
+            <div class="flex justify-between items-center animate-fade-in">
+                <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                     {{ room.name }}
                 </h2>
                 <div class="flex items-center gap-4">
-                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                    <div class="text-sm px-4 py-2 rounded-full" 
+                         :class="[isYourTurn ? 
+                            'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 animate-pulse' : 
+                            'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200']">
                         {{ isYourTurn ? 'Your Turn' : "Opponent's Turn" }}
                     </div>
 
-                    <!-- Leave Button -->
-                    <button @click="leaveRoom()" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                    <button @click="leaveRoom()" 
+                            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-red-500/50">
                         Leave Room
                     </button>
                 </div>
@@ -252,21 +256,39 @@ onUnmounted(() => {
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col lg:flex-row gap-6">
                     <!-- Game Info -->
-                    <div class="w-full lg:w-1/4">
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-                            <h3 class="text-lg font-semibold mb-4 dark:text-gray-50">Players</h3>
-                            <div class="space-y-2">
-                                <div v-for="player in room.players" :key="player.id" :class="{
-                                    'text-green-600': player.pivot.is_ready,
-                                    'text-gray-600 dark:text-gray-50': !player.pivot.is_ready
-                                }">
-                                    {{ player.name }}
-                                    <span v-if="player.pivot.is_ready">(Ready)</span>
+                    <div class="w-full lg:w-1/4 transform hover:scale-102 transition-all duration-200">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                            <h3 class="text-lg font-semibold mb-6 dark:text-gray-50 flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                                Players
+                            </h3>
+                            <div class="space-y-3">
+                                <div v-for="player in room.players" 
+                                     :key="player.id" 
+                                     class="p-3 rounded-lg transition-all duration-200"
+                                     :class="[
+                                         player.pivot.is_ready ? 
+                                         'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 
+                                         'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                                     ]">
+                                    <div class="flex items-center justify-between">
+                                        <span>{{ player.name }}</span>
+                                        <span v-if="player.pivot.is_ready" 
+                                              class="flex items-center text-sm">
+                                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                            Ready
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <button v-if="gameStatus === 'waiting'" @click="toggleReady()"
-                                class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            <button v-if="gameStatus === 'waiting'" 
+                                    @click="toggleReady()"
+                                    class="mt-6 w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-blue-500/50">
                                 Toggle Ready
                             </button>
                         </div>
@@ -286,7 +308,12 @@ onUnmounted(() => {
                     <!-- Chat -->
                     <div class="w-full lg:w-1/4">
                         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 h-full flex flex-col">
-                            <h3 class="text-lg font-semibold mb-4 dark:text-gray-500">Chat</h3>
+                            <h3 class="text-lg font-semibold mb-4 dark:text-gray-50 flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                </svg>
+                                Chat
+                            </h3>
                             <div class="flex-1 overflow-y-auto mb-4 space-y-2">
                                 <div v-for="message in messages" :key="message.id" class="text-sm dark:text-gray-50">
                                     <span class="font-medium">
@@ -311,3 +338,38 @@ onUnmounted(() => {
         </div>
     </AuthenticatedLayout>
 </template>
+
+<style scoped>
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.5);
+    border-radius: 20px;
+}
+
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fade-in-up 0.3s ease-out;
+}
+</style>

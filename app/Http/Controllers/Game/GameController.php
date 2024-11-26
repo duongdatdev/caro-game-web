@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Game;
+
+use App\Http\Controllers\Controller;
 
 use App\Events\MessageSent;
 use App\Models\Room;
@@ -13,8 +15,6 @@ use App\Models\PlayerStats;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use Pusher\Pusher;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class GameController extends Controller
@@ -52,6 +52,7 @@ class GameController extends Controller
                 'moves' => $game->moves ?? []
             ],
             'currentPlayer' => $game->current_player, // Use stored current player
+            'user' => Auth::user(),
             'game' => [
                 'id' => $game->id,
                 'status' => $game->status,

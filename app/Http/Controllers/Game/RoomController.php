@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Game;
 
 use App\Models\Room;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
 use App\Events\PlayerJoined;
 use Illuminate\Support\Facades\Log;
 use App\Events\PlayerLeft;
 use App\Models\PlayerStats;
 use App\Events\GameFinished;
+use Illuminate\Routing\Controller;
 
 class RoomController extends Controller
 {

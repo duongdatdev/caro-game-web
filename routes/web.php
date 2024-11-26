@@ -1,11 +1,11 @@
 <?php
 
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\RoomController;
-use App\Http\Controllers\GameController;
-use App\Http\Controllers\LeaderboardController;
-use App\Http\Controllers\HistoryController;
+use App\Http\Controllers\Game\DashboardController;
+use App\Http\Controllers\Game\ProfileController;
+use App\Http\Controllers\Game\RoomController;
+use App\Http\Controllers\Game\GameController;
+use App\Http\Controllers\Game\LeaderboardController;
+use App\Http\Controllers\Game\HistoryController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 
 use Illuminate\Foundation\Application;

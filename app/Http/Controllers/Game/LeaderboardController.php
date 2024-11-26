@@ -1,5 +1,7 @@
 <?php
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Game;
+
+use App\Http\Controllers\Controller;
 
 use App\Models\PlayerStats;
 use Inertia\Inertia;
