@@ -36,8 +36,9 @@ const getPlayerName = (userId: number): string | undefined => {
     return player ? player.name : undefined;
 };
 
+const userId = ref(props.userId);
 const moves = ref(props.room.moves);
-const isYourTurn = ref(false);
+const isYourTurn = ref(props.currentPlayer === props.userId);
 const gameStatus = ref(props.room.status);
 const messages = ref<Array<{ id: number; user_id: number; message: string }>>([]);
 const newMessage = ref('');
@@ -50,12 +51,14 @@ const showToast = ref(false);
 const toastMessage = ref('');
 const toastType = ref<'error' | 'success' | 'info'>('info');
 
+console.log('My ID:', props.userId);    
+
 
 // Toggle player ready status
 const toggleReady = async () => {
     try {
         const response = await axios.post(`/game/${props.room.id}/ready`);
-        const player = players.value.find(p => p.id === props.currentPlayer);
+        const player = players.value.find(p => p.id === props.userId);
         if (player) {
             player.pivot.is_ready = !player.pivot.is_ready;
         }
@@ -77,7 +80,7 @@ const makeMove = async (x: number, y: number) => {
     const newMove = {
         x: x,
         y: y,
-        user_id: props.currentPlayer,
+        user_id: props.userId,
         order: moves.value.length + 1
     };
     moves.value.push(newMove);
@@ -168,7 +171,7 @@ onMounted(() => {
                 order: e.move.order
             };
             moves.value.push(newMove);
-            isYourTurn.value = e.move.user_id !== props.currentPlayer;
+            isYourTurn.value = e.move.user_id !== props.userId;
         })
         .listen('.player.ready', (e: any) => {
             console.log('Players:', players.value);
@@ -184,7 +187,7 @@ onMounted(() => {
                 console.log(e.roomStatus);
                 gameStatus.value = 'playing';
                 console.log('Game started');
-                isYourTurn.value = props.room.created_by === props.currentPlayer;
+                isYourTurn.value = props.room.created_by === props.userId;
             }
         })
         .listen('.game.finished', (e: any) => {
@@ -297,7 +300,7 @@ onUnmounted(() => {
                     <!-- Game Board -->
                     <div class="w-full lg:w-2/4">
                         <Board :moves="moves" :disabled="!isYourTurn || gameStatus !== 'playing'"
-                            :current-player="currentPlayer" :is-game-finished="gameStatus === 'finished'"
+                            :current-player="userId" :is-game-finished="gameStatus === 'finished'"
                             @move="makeMove" />
                     </div>
 

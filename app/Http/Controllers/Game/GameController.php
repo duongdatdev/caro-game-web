@@ -52,7 +52,7 @@ class GameController extends Controller
                 'moves' => $game->moves ?? []
             ],
             'currentPlayer' => $game->current_player, // Use stored current player
-            'user' => Auth::user(),
+            'userId' => Auth::user()->id,
             'game' => [
                 'id' => $game->id,
                 'status' => $game->status,
