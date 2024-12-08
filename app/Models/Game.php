@@ -13,8 +13,6 @@ class Game extends Model
     protected $fillable = [
         'room_id',
         'status',
-        'winner_id',
-        'board_state',
         'current_player'
     ];
 
@@ -25,11 +23,6 @@ class Game extends Model
     public function room(): BelongsTo
     {
         return $this->belongsTo(Room::class);
-    }
-
-    public function winner(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'winner_id');
     }
 
     public function moves()
@@ -50,8 +43,7 @@ class Game extends Model
         return self::create([
             'room_id' => $room->id,
             'status' => 'playing',
-            'board_state' => array_fill(0, 15, array_fill(0, 15, null)),
-            'current_player' => $room->created_by // Set room creator as first player
+            'current_player' => $room->created_by 
         ]);
     }
 

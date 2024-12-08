@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('game_moves', function (Blueprint $table) {
             $table->id();
             $table->foreignId('game_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');;
             $table->integer('x');
             $table->integer('y');
             $table->integer('order');

@@ -15,8 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('room_id')->constrained()->onDelete('cascade');
             $table->enum('status', ['playing', 'finished'])->default('playing');
-            $table->foreignId('winner_id')->nullable()->constrained('users');
-            $table->json('board_state')->nullable();
             $table->foreignId('current_player')->nullable()->constrained('users');
             $table->timestamps();
         });

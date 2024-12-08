@@ -22,7 +22,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'email_verified_at',
-        'is_admin',
     ];
 
     /**
@@ -38,6 +37,8 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'is_banned' => 'boolean',
+        'banned_at' => 'datetime'
     ];
     /**
      * Get the attributes that should be cast.
@@ -63,5 +64,10 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(Room::class, 'room_players', 'user_id', 'room_id')
             ->withPivot('is_ready')
             ->withTimestamps();
+    }
+
+    public function isBanned(): bool
+    {
+        return $this->is_banned;
     }
 }

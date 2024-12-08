@@ -12,6 +12,7 @@ use App\Events\GameFinished;
 use App\Events\PlayerReady;
 use App\Models\Move;
 use App\Models\PlayerStats;
+use App\Models\GameHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -125,23 +126,39 @@ class GameController extends Controller
 
         $game->switchTurn();
 
-        // Update game state
-        $boardState = $game->board_state ?? array_fill(0, 15, array_fill(0, 15, null));
-        $boardState[$request->y][$request->x] = Auth::id();
-        $game->board_state = $boardState;
-        $game->save();
+        // // Update game state
+        // $boardState = $game->board_state ?? array_fill(0, 15, array_fill(0, 15, null));
+        // $boardState[$request->y][$request->x] = Auth::id();
+        // $game->board_state = $boardState;
+        // $game->save();
 
         // Broadcast move to other players
         broadcast(new MoveMade($room->id, $move->toArray()))->toOthers();
 
+
+        // Build current board state from moves
+        $boardState = array_fill(0, 15, array_fill(0, 15, null));
+        foreach ($game->moves as $gameMove) {
+            $boardState[$gameMove->y][$gameMove->x] = $gameMove->user_id;
+        }
+
+        Log::info('Current board state:', [
+            'board_state' => $boardState,
+            'total_moves' => $game->moves()->count()
+        ]);
         // Check for win condition
         if ($this->checkWin($boardState, $request->x, $request->y, Auth::id())) {
             // Update game status
             $game->update([
                 'status' => 'finished',
+            ]);
+            // Create game history record
+            GameHistory::create([
+                'game_id' => $game->id,
+                'user1_id' => $room->players->first()->id,
+                'user2_id' => $room->players->last()->id,
                 'winner_id' => Auth::id()
             ]);
-
             // Update room status
             $room->update(['status' => 'finished']);
 

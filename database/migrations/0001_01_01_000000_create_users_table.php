@@ -17,7 +17,10 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->boolean('is_admin')->default(false);
+            $table->boolean('is_banned')->default(false);
+            $table->text('ban_reason')->nullable();
+            $table->timestamp('banned_at')->nullable();
+            $table->foreignId('banned_by')->nullable()->constrained('users');
             $table->rememberToken();
             $table->timestamps();
         });

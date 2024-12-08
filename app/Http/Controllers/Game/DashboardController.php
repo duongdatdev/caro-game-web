@@ -25,26 +25,31 @@ class DashboardController extends Controller
         $rank = $allPlayers->search(function ($playerStats) use ($user) {
             return $playerStats->user_id === $user->id;
         }) + 1;
-        $recentGames = \App\Models\Game::with(['room.players', 'winner'])
-        ->whereHas('room.players', function ($query) use ($user) {
-            $query->where('user_id', $user->id);
-        })
-        ->where('status', 'finished') 
-        ->orderBy('created_at', 'desc')
-        ->take(5)
-        ->get()
-        ->map(function ($game) use ($user) {
-            $opponent = $game->room->players->firstWhere('id', '!=', $user->id);
-            $result = $game->winner_id === $user->id ? 'win' : 
-                     ($game->winner_id === null ? 'draw' : 'loss');
+        $recentGames = \App\Models\GameHistory::with(['game', 'user1', 'user2', 'winner'])
+            ->where(function ($query) use ($user) {
+                $query->where('user1_id', $user->id)
+                    ->orWhere('user2_id', $user->id);
+            })
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($history) use ($user) {
+                $opponent = $history->user1_id === $user->id
+                    ? $history->user2
+                    : $history->user1;
 
-            return [
-                'type' => $result,
-                'description' => 'Played against ' . ($opponent ? $opponent->name : 'Unknown'),
-                'time' => $game->created_at->diffForHumans(),
-                'rating_change' => $game->rating_change ?? 0
-            ];
-        });
+                $result = 'draw';
+                if ($history->winner_id) {
+                    $result = $history->winner_id === $user->id ? 'win' : 'loss';
+                }
+
+                return [
+                    'type' => $result,
+                    'description' => 'Played against ' . ($opponent ? $opponent->name : 'Unknown'),
+                    'time' => $history->created_at->diffForHumans(),
+                    'rating_change' => $history->rating_change ?? 0
+                ];
+            });
 
         // Prepare the stats array
         $stats = [

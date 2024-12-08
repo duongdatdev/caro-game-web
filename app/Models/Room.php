@@ -30,7 +30,7 @@ class Room extends Model
             ->withPivot('is_ready')
             ->withTimestamps();
     }
-
+    
     public function games(): HasMany
     {
         return $this->hasMany(Game::class);

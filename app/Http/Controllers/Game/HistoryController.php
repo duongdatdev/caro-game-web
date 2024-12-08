@@ -10,76 +10,45 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use PgSql\Lob;
+use App\Models\GameHistory;
+
+use function Pest\Laravel\get;
 
 class HistoryController extends Controller
 {
     public function index()
     {
-        DB::enableQueryLog();
-        $games = Game::with(['room.players', 'winner'])
-            ->whereHas('room.players', function ($query) {
-                $query->where('user_id', Auth::id());
-            })
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($game) {
-                Log::debug('Game Details', [
-                    'game_id' => $game->id,
-                    'player_id' => Auth::id(),
-                    'player_id_check' => $game->room->players->first()->id,
-                    'status' => $game->status,
-                    'winner_id' => $game->winner_id,
-                    'room_id' => $game->room_id,
-                    'board_state' => $game->board_state,
-                    'created_at' => $game->created_at
-                ]);
-                return [
-                    'id' => $game->id,
-                    'opponent' => $this->getOpponentName($game),
-                    'result' => $this->getGameResult($game),
-                    'rating_change' => $this->getRatingChange($game),
-                    'played_at' => $game->created_at->format('Y-m-d H:i')
-                ];
-            });
-
-        Log::debug('Query Log', ['queries' => DB::getQueryLog()]);
-        return Inertia::render('History/Index', [
-            'games' => $games,
-            'stats' => $this->getPlayerStats()
-        ]);
-    }
-
-    private function getOpponentName($game)
-    {
-        try {
-            // Ensure the room and players are loaded
-            if (!$game->room || !$game->room->players) {
-                Log::error('Game room or players not loaded', ['game' => $game->id]);
-                return 'Unknown 1';
+        $histories = GameHistory::with(['game', 'user1', 'user2', 'winner'])
+        ->where('user1_id', Auth::user()->id)
+        ->orWhere('user2_id', Auth::user()->id)
+        ->latest()
+        ->get()
+        ->map(function($history) {
+            $currentUser = Auth::user();
+            $opponent = $history->user1_id === $currentUser->id 
+                ? $history->user2 
+                : $history->user1;
+            
+            $result = 'draw';
+            if ($history->winner_id) {
+                $result = $history->winner_id === $currentUser->id ? 'win' : 'loss';
             }
+            
+            return [
+                'id' => $history->id,
+                'played_at' => $history->created_at->format('Y-m-d H:i'),
+                'opponent' => $opponent->name ?? 'Unknown',
+                'result' => $result,
+                'game_type' => $history->game->type ?? 'Unknown'
+            ];
+        });
 
-            // Use the players collection to find the opponent
-            $opponent = $game->room->players->firstWhere('id', '!=', Auth::id());
+        $stats = $this->getPlayerStats();
 
-            return $opponent ? $opponent->name : 'Unknown 3';
-        } catch (\Exception $e) {
-            return 'Unknown 2';
-        }
-    }
-
-    private function getGameResult($game)
-    {
-        Log::debug('Game result', ['game' => $game->id, 'winner' => $game->winner_id, 'player' => Auth::id()]);
-        if ($game->winner_id === Auth::id()) return 'win';
-        if ($game->winner_id) return 'loss';
-        return 'draw';
-    }
-
-    private function getRatingChange($game)
-    {
-        if ($game->winner_id === Auth::id()) return 15;
-        if ($game->winner_id) return -15;
-        return 0;
+        return Inertia::render('History/Index', [
+            'histories' => $histories,
+            'stats' => $stats
+        ]);
     }
 
     private function getPlayerStats()

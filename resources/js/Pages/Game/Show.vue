@@ -51,7 +51,7 @@ const showToast = ref(false);
 const toastMessage = ref('');
 const toastType = ref<'error' | 'success' | 'info'>('info');
 
-console.log('My ID:', props.userId);    
+console.log('My ID:', props.userId);
 
 
 // Toggle player ready status
@@ -93,11 +93,18 @@ const makeMove = async (x: number, y: number) => {
             gameStatus.value = 'finished';
         }
     } catch (error) {
-        // If request fails, rollback the move
+        // Rollback move
         moves.value = moves.value.filter(move =>
             move.x !== x || move.y !== y
         );
         isYourTurn.value = true;
+
+        // Show error details
+        if (axios.isAxiosError(error)) {
+            toastMessage.value = error.response?.data?.message || 'Failed to make move';
+            toastType.value = 'error';
+            showToast.value = true;
+        }
         console.error('Failed to make move:', error);
     }
 };
@@ -121,7 +128,7 @@ const sendMessage = async () => {
 
 //Leave the room
 const leaveRoom = async () => {
-     try {
+    try {
         // Show confirmation if game is in progress
         if (gameStatus.value === 'playing') {
             const confirmed = await new Promise((resolve) => {
@@ -139,7 +146,7 @@ const leaveRoom = async () => {
 
         // Call the server endpoint to leave room
         await axios.post(`/rooms/${props.room.id}/leave`);
-        
+
         // Redirect to rooms list
         window.location.href = route('rooms.index');
     } catch (error) {
@@ -157,7 +164,7 @@ onMounted(() => {
             // Add new player to players list
             if (players.value.some((p: { id: number }) => p.id === e.player.id)) return;
             players.value.push(e.player);
-            
+
             toastMessage.value = `${e.player.name} has join the room`;
             toastType.value = 'info';
             showToast.value = true;
@@ -236,19 +243,19 @@ onUnmounted(() => {
     <AuthenticatedLayout>
         <template #header>
             <div class="flex justify-between items-center animate-fade-in">
-                <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                <h2
+                    class="text-xl font-semibold text-gray-800 dark:text-gray-50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                     {{ room.name }}
                 </h2>
                 <div class="flex items-center gap-4">
-                    <div class="text-sm px-4 py-2 rounded-full" 
-                         :class="[isYourTurn ? 
-                            'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 animate-pulse' : 
-                            'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200']">
+                    <div class="text-sm px-4 py-2 rounded-full" :class="[isYourTurn ?
+                        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 animate-pulse' :
+                        'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200']">
                         {{ isYourTurn ? 'Your Turn' : "Opponent's Turn" }}
                     </div>
 
-                    <button @click="leaveRoom()" 
-                            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-red-500/50">
+                    <button @click="leaveRoom()"
+                        class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-red-500/50">
                         Leave Room
                     </button>
                 </div>
@@ -260,28 +267,29 @@ onUnmounted(() => {
                 <div class="flex flex-col lg:flex-row gap-6">
                     <!-- Game Info -->
                     <div class="w-full lg:w-1/4 transform hover:scale-102 transition-all duration-200">
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-700">
                             <h3 class="text-lg font-semibold mb-6 dark:text-gray-50 flex items-center">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                 </svg>
                                 Players
                             </h3>
                             <div class="space-y-3">
-                                <div v-for="player in room.players" 
-                                     :key="player.id" 
-                                     class="p-3 rounded-lg transition-all duration-200"
-                                     :class="[
-                                         player.pivot.is_ready ? 
-                                         'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 
-                                         'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-                                     ]">
+                                <div v-for="player in room.players" :key="player.id"
+                                    class="p-3 rounded-lg transition-all duration-200" :class="[
+                                        player.pivot.is_ready ?
+                                            'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
+                                            'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                                    ]">
                                     <div class="flex items-center justify-between">
                                         <span>{{ player.name }}</span>
-                                        <span v-if="player.pivot.is_ready" 
-                                              class="flex items-center text-sm">
+                                        <span v-if="player.pivot.is_ready" class="flex items-center text-sm">
                                             <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                <path fill-rule="evenodd"
+                                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                    clip-rule="evenodd" />
                                             </svg>
                                             Ready
                                         </span>
@@ -289,9 +297,8 @@ onUnmounted(() => {
                                 </div>
                             </div>
 
-                            <button v-if="gameStatus === 'waiting'" 
-                                    @click="toggleReady()"
-                                    class="mt-6 w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-blue-500/50">
+                            <button v-if="gameStatus === 'waiting'" @click="toggleReady()"
+                                class="mt-6 w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-blue-500/50">
                                 Toggle Ready
                             </button>
                         </div>
@@ -300,8 +307,7 @@ onUnmounted(() => {
                     <!-- Game Board -->
                     <div class="w-full lg:w-2/4">
                         <Board :moves="moves" :disabled="!isYourTurn || gameStatus !== 'playing'"
-                            :current-player="userId" :is-game-finished="gameStatus === 'finished'"
-                            @move="makeMove" />
+                            :current-player="userId" :is-game-finished="gameStatus === 'finished'" @move="makeMove" />
                     </div>
 
                     <!-- Win Modal -->
@@ -313,7 +319,8 @@ onUnmounted(() => {
                         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 h-full flex flex-col">
                             <h3 class="text-lg font-semibold mb-4 dark:text-gray-50 flex items-center">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                                 </svg>
                                 Chat
                             </h3>
@@ -366,6 +373,7 @@ onUnmounted(() => {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);

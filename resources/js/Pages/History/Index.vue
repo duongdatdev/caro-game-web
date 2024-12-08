@@ -4,15 +4,19 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
 
 const props = defineProps({
-    games: Array, 
+    histories: Array,
     stats: Object
 });
+
+console.log(props.games);
+console.log(props.stats);
+
 
 const filter = ref('all');
 
 const filteredGames = computed(() => {
-    if (filter.value === 'all') return props.games;
-    return props.games.filter(game => game.result === filter.value);
+    if (filter.value === 'all') return props.histories;
+    return props.histories.filter(game => game.result.toLowerCase() === filter.value);
 });
 </script>
 
@@ -71,7 +75,7 @@ const filteredGames = computed(() => {
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                <tr v-for="(game, index) in filteredGames" 
+                                <tr v-for="game in filteredGames" 
                                     :key="game.id"
                                     class="game-row hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
                                     :style="{ animationDelay: `${index * 0.1}s` }">
