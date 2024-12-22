@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "85e7a801893042c6eb8a330adbc4e717",
+    "content-hash": "70900c446dc731b1a62cb12c5405f066",
     "packages": [
         {
             "name": "brick/math",
@@ -3328,12 +3328,12 @@
             "type": "library",
             "extra": {
                 "laravel": {
-                    "providers": [
-                        "OpenAdmin\\Admin\\AdminServiceProvider"
-                    ],
                     "aliases": {
                         "Admin": "OpenAdmin\\Admin\\Facades\\Admin"
-                    }
+                    },
+                    "providers": [
+                        "OpenAdmin\\Admin\\AdminServiceProvider"
+                    ]
                 }
             },
             "autoload": {
