@@ -18,7 +18,7 @@ npm install
     ```bash
     php artisan vendor:publish --provider="OpenAdmin\Admin\Config\ConfigServiceProvider"
     php artisan migrate
-    ```bash
+    ```
 ## Chạy dự án:
 1. Phía server: php artisan serve
 2. Phía client: npm run dev
